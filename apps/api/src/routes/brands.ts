@@ -61,4 +61,28 @@ router.post(
   }
 );
 
+router.post(
+  '/me/logo',
+  requireAuth,
+  requireRole('BRAND'),
+  uploadSingle('image'),
+  async (req: AuthRequest, res) => {
+    if (!req.file) {
+      res.status(400).json({ error: 'No image file provided' });
+      return;
+    }
+    const file = req.file as Express.Multer.File & { path: string };
+    if (!file.path) {
+      res.status(500).json({ error: 'Upload succeeded but URL was not returned' });
+      return;
+    }
+    const profile = await prisma.brandProfile.upsert({
+      where: { userId: req.userId! },
+      update: { logoUrl: file.path },
+      create: { userId: req.userId!, brandName: '', logoUrl: file.path },
+    });
+    res.json({ url: file.path, profile });
+  }
+);
+
 export default router;

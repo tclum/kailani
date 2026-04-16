@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/prisma';
 
-type Role = 'MODEL' | 'BRAND' | 'ADMIN';
+type Role = 'MODEL' | 'BRAND' | 'ADMIN' | 'PHOTOGRAPHER';
 
 const SALT_ROUNDS = 12;
 
@@ -29,9 +29,22 @@ export async function register(email: string, password: string, role: Role) {
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
   const verificationToken = secureToken();
-  const user = await prisma.user.create({
-    data: { email, passwordHash, role, verificationToken },
-    select: { id: true, email: true, role: true, approved: true, createdAt: true, updatedAt: true },
+
+  const user = await prisma.$transaction(async (tx) => {
+    const newUser = await tx.user.create({
+      data: { email, passwordHash, role, verificationToken },
+      select: { id: true, email: true, role: true, approved: true, createdAt: true, updatedAt: true },
+    });
+
+    if (role === 'MODEL') {
+      await tx.modelProfile.create({ data: { userId: newUser.id, displayName: '' } });
+    } else if (role === 'BRAND') {
+      await tx.brandProfile.create({ data: { userId: newUser.id, brandName: '' } });
+    } else if (role === 'PHOTOGRAPHER') {
+      await tx.photographerProfile.create({ data: { userId: newUser.id, displayName: '' } });
+    }
+
+    return newUser;
   });
 
   const accessToken = signAccess(user.id, user.role);

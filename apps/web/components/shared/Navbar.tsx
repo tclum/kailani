@@ -48,6 +48,11 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           {user ? (
             <>
+              {user.role === 'BRAND' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/brand/profile">Brand Profile</Link>
+                </Button>
+              )}
               {inboxHref && (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href={inboxHref} className="flex items-center gap-1.5">
