@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM node:20-alpine
+RUN apk add --no-cache openssl
 WORKDIR /app
 
 # Copy workspace manifests first — layer is cached until any manifest changes
