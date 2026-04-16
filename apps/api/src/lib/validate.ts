@@ -74,4 +74,47 @@ export const updateBrandSchema = z.object({
   logoUrl: z.string().url().optional().or(z.literal('')),
   bio: z.string().optional(),
   location: z.string().optional(),
+  instagramUrl: z.string().url().optional().or(z.literal('')),
+});
+
+// ── Model profile ─────────────────────────────────────────────────────────────
+
+const ratesSchema = z.object({
+  dayRate:     z.number().nonnegative().optional(),
+  halfDayRate: z.number().nonnegative().optional(),
+  hourlyRate:  z.number().nonnegative().optional(),
+}).optional();
+
+export const updateModelProfileSchema = z.object({
+  displayName:     z.string().min(1).optional(),
+  bio:             z.string().max(400).optional(),
+  location:        z.string().optional(),
+  instagramUrl:    z.string().url().optional().or(z.literal('')),
+  heightCm:        z.number().int().positive().optional(),
+  bustCm:          z.number().int().positive().optional(),
+  waistCm:         z.number().int().positive().optional(),
+  hipsCm:          z.number().int().positive().optional(),
+  shoeSize:        z.number().positive().optional(),
+  hairColor:       z.string().optional(),
+  eyeColor:        z.string().optional(),
+  skinTone:        z.string().optional(),
+  tags:            z.array(z.string()).optional(),
+  coverImage:      z.string().optional(),
+  portfolioImages: z.array(z.string()).optional(),
+  rates:           ratesSchema,
+  availability:    z.array(z.string()).optional(),
+});
+
+// ── Photographer profile ──────────────────────────────────────────────────────
+
+export const updatePhotographerProfileSchema = z.object({
+  displayName:     z.string().min(1).optional(),
+  bio:             z.string().optional(),
+  location:        z.string().optional(),
+  instagramUrl:    z.string().url().optional().or(z.literal('')),
+  specialties:     z.array(z.string()).optional(),
+  coverImage:      z.string().optional(),
+  portfolioImages: z.array(z.string()).optional(),
+  rates:           ratesSchema,
+  availability:    z.array(z.string()).optional(),
 });

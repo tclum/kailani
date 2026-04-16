@@ -10,6 +10,7 @@ import brandRoutes from './routes/brands';
 import campaignRoutes from './routes/campaigns';
 import messageRoutes from './routes/messages';
 import mediaRoutes from './routes/media';
+import photographerRoutes from './routes/photographers';
 import adminRoutes from './routes/admin';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/threads', messageRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/photographers', photographerRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Global error handler

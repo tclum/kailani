@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { uploadSingle } from '../middleware/upload';
+import { validate, updateModelProfileSchema } from '../lib/validate';
 import { listModels, getModel, getMyModel, updateMyModel, addPortfolioImage } from '../services/model.service';
 
 const router = Router();
@@ -35,17 +36,8 @@ router.get('/:id', async (req, res) => {
   res.json(model);
 });
 
-router.put('/me', requireAuth, requireRole('MODEL'), async (req: AuthRequest, res) => {
-  const allowed = [
-    'displayName', 'bio', 'height', 'bust', 'waist', 'hips', 'shoeSize',
-    'hairColor', 'eyeColor', 'location', 'instagramUrl', 'tags', 'coverImage',
-    'portfolioImages',
-  ];
-  const data: Record<string, unknown> = {};
-  for (const key of allowed) {
-    if (req.body[key] !== undefined) data[key] = req.body[key];
-  }
-  const profile = await updateMyModel(req.userId!, data);
+router.put('/me', requireAuth, requireRole('MODEL'), validate(updateModelProfileSchema), async (req: AuthRequest, res) => {
+  const profile = await updateMyModel(req.userId!, req.body);
   res.json(profile);
 });
 

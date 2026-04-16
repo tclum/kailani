@@ -12,6 +12,7 @@ enum Role {
   MODEL
   BRAND
   ADMIN
+  PHOTOGRAPHER
 }
 
 enum CampaignStatus {
@@ -29,60 +30,82 @@ enum ApplicationStatus {
 }
 
 model User {
-  id                  String    @id @default(cuid())
-  email               String    @unique
+  id                  String                @id @default(cuid())
+  email               String                @unique
   passwordHash        String
   role                Role
-  approved            Boolean   @default(false)
-  emailVerified       Boolean   @default(false)
-  verificationToken   String?   @unique
-  resetToken          String?   @unique
+  approved            Boolean               @default(false)
+  emailVerified       Boolean               @default(false)
+  verificationToken   String?               @unique
+  resetToken          String?               @unique
   resetTokenExpiry    DateTime?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 
-  modelProfile  ModelProfile?
-  brandProfile  BrandProfile?
-  sentMessages  Message[]      @relation("SentMessages")
-  threads       ThreadMember[]
+  modelProfile        ModelProfile?
+  brandProfile        BrandProfile?
+  photographerProfile PhotographerProfile?
+  sentMessages        Message[]             @relation("SentMessages")
+  threads             ThreadMember[]
 }
 
 model ModelProfile {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName     String
+  bio             String?
+  location        String?
+  instagramUrl    String?
+  heightCm        Int?
+  bustCm          Int?
+  waistCm         Int?
+  hipsCm          Int?
+  shoeSize        Float?
+  hairColor       String?
+  eyeColor        String?
+  skinTone        String?
+  rates           Json?
+  availability    Json?
+  portfolioImages String[]
+  coverImage      String?
+  tags            String[]
+  applications    Application[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model BrandProfile {
+  id           String     @id @default(cuid())
+  userId       String     @unique
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brandName    String
+  industry     String?
+  website      String?
+  logoUrl      String?
+  bio          String?
+  location     String?
+  instagramUrl String?
+  campaigns    Campaign[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model PhotographerProfile {
   id              String   @id @default(cuid())
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   displayName     String
   bio             String?
-  height          Int?
-  bust            Int?
-  waist           Int?
-  hips            Int?
-  shoeSize        Float?
-  hairColor       String?
-  eyeColor        String?
   location        String?
   instagramUrl    String?
+  specialties     String[]
   portfolioImages String[]
   coverImage      String?
-  tags            String[]
-  applications    Application[]
+  rates           Json?
+  availability    Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-}
-
-model BrandProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  brandName String
-  industry  String?
-  website   String?
-  logoUrl   String?
-  bio       String?
-  location  String?
-  campaigns Campaign[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Campaign {
