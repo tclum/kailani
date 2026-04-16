@@ -54,7 +54,7 @@ export default function ModelProfilePage() {
         displayName:  p.displayName ?? '',
         bio:          p.bio ?? '',
         location:     p.location ?? '',
-        instagramUrl: p.instagramUrl ?? '',
+        instagramUrl: (p.instagramUrl ?? '').replace(/^https?:\/\/(www\.)?instagram\.com\//, ''),
         heightCm:     p.heightCm?.toString() ?? '',
         bustCm:       p.bustCm?.toString() ?? '',
         waistCm:      p.waistCm?.toString() ?? '',
@@ -134,7 +134,7 @@ export default function ModelProfilePage() {
         displayName:  form.displayName,
         bio:          form.bio || undefined,
         location:     form.location || undefined,
-        instagramUrl: form.instagramUrl || undefined,
+        instagramUrl: form.instagramUrl ? `https://instagram.com/${form.instagramUrl}` : undefined,
         hairColor:    form.hairColor || undefined,
         eyeColor:     form.eyeColor || undefined,
         skinTone:     form.skinTone || undefined,
@@ -294,13 +294,15 @@ export default function ModelProfilePage() {
                 </FormSection>
 
                 <FormSection icon={<Instagram size={16} />} title="Instagram">
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">instagram.com/</span>
+                  <div className="flex rounded-xl border border-border bg-background overflow-hidden focus-within:ring-2 focus-within:ring-pink-300 focus-within:border-pink-300 transition-all">
+                    <span className="flex items-center px-3 text-sm text-muted-foreground bg-muted border-r border-border whitespace-nowrap select-none">
+                      instagram.com/
+                    </span>
                     <input
-                      value={form.instagramUrl.replace(/.*instagram\.com\//, '')}
-                      onChange={(e) => upd('instagramUrl', e.target.value ? `https://instagram.com/${e.target.value}` : '')}
+                      value={form.instagramUrl}
+                      onChange={(e) => upd('instagramUrl', e.target.value)}
                       placeholder="yourhandle"
-                      className="form-field pl-28"
+                      className="flex-1 h-11 px-3 text-sm outline-none bg-transparent placeholder:text-muted-foreground text-foreground"
                     />
                   </div>
                 </FormSection>
