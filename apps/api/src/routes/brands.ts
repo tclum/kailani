@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
+import { validate, updateBrandSchema } from '../lib/validate';
 import { prisma } from '../lib/prisma';
 
 const router = Router();
@@ -16,17 +17,11 @@ router.get('/:id', async (req, res) => {
   res.json(brand);
 });
 
-router.put('/me', requireAuth, requireRole('BRAND'), async (req: AuthRequest, res) => {
-  const allowed = ['brandName', 'industry', 'website', 'logoUrl', 'bio', 'location'];
-  const data: Record<string, unknown> = {};
-  for (const key of allowed) {
-    if (req.body[key] !== undefined) data[key] = req.body[key];
-  }
-
+router.put('/me', requireAuth, requireRole('BRAND'), validate(updateBrandSchema), async (req: AuthRequest, res) => {
   const profile = await prisma.brandProfile.upsert({
     where: { userId: req.userId! },
-    update: data,
-    create: { userId: req.userId!, brandName: (data.brandName as string) ?? '', ...data },
+    update: req.body,
+    create: { userId: req.userId!, brandName: req.body.brandName ?? '', ...req.body },
   });
   res.json(profile);
 });

@@ -11,6 +11,7 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 export default function PortfolioPage() {
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -22,7 +23,9 @@ export default function PortfolioPage() {
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    console.log('[portfolio] upload triggered:', { name: file.name, type: file.type, size: file.size });
     setUploading(true);
+    setError(null);
     try {
       const fd = new FormData();
       fd.append('image', file);
@@ -32,11 +35,14 @@ export default function PortfolioPage() {
         body: fd,
       });
       const data = await res.json();
-      if (data.url) {
-        const newImages = [...images, data.url];
-        setImages(newImages);
-        await apiFetch('/api/models/me', { method: 'PUT', body: { portfolioImages: newImages } });
+      if (!res.ok) {
+        setError(data.error ?? 'Upload failed');
+        return;
       }
+      setImages((prev) => [...prev, data.url]);
+    } catch (err) {
+      console.error('[portfolio] upload error:', err);
+      setError('Upload failed — please try again');
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -47,11 +53,15 @@ export default function PortfolioPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Portfolio</h1>
-        <Button onClick={() => inputRef.current?.click()} disabled={uploading}>
+        <Button onClick={() => { console.log('[portfolio] button clicked, ref:', !!inputRef.current); inputRef.current?.click(); }} disabled={uploading}>
           {uploading ? 'Uploading…' : 'Upload Image'}
         </Button>
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
       </div>
+
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
+      )}
 
       {images.length === 0 ? (
         <p className="text-muted-foreground">No portfolio images yet. Upload your first image.</p>

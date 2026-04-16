@@ -11,8 +11,7 @@ out/
 .env.local
 .env.*.local
 
-# Prisma
-apps/api/prisma/migrations/
+# Prisma — migrations are intentionally committed (Railway needs them to run on deploy)
 
 # Logs
 *.log

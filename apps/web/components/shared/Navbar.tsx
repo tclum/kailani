@@ -1,4 +1,5 @@
 'use client';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -6,10 +7,15 @@ import { clearTokens, getCurrentUser } from '@/lib/auth';
 
 export function Navbar() {
   const router = useRouter();
-  const user = getCurrentUser();
+  const [user, setUser] = useState<ReturnType<typeof getCurrentUser>>(null);
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, []);
 
   function handleLogout() {
     clearTokens();
+    setUser(null);
     router.push('/login');
   }
 

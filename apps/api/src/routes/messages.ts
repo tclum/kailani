@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { validate, createThreadSchema, sendMessageSchema } from '../lib/validate';
 import {
   getThreadsForUser,
   findOrCreateThread,
@@ -17,13 +18,8 @@ router.get('/', async (req: AuthRequest, res) => {
   res.json(threads);
 });
 
-router.post('/', async (req: AuthRequest, res) => {
-  const { recipientId } = req.body as { recipientId?: string };
-  if (!recipientId) {
-    res.status(400).json({ error: 'recipientId required' });
-    return;
-  }
-  const thread = await findOrCreateThread(req.userId!, recipientId);
+router.post('/', validate(createThreadSchema), async (req: AuthRequest, res) => {
+  const thread = await findOrCreateThread(req.userId!, req.body.recipientId);
   res.status(201).json(thread);
 });
 
@@ -40,14 +36,9 @@ router.get('/:id/messages', async (req: AuthRequest, res) => {
   }
 });
 
-router.post('/:id/messages', async (req: AuthRequest, res) => {
-  const { body } = req.body as { body?: string };
-  if (!body?.trim()) {
-    res.status(400).json({ error: 'Message body required' });
-    return;
-  }
+router.post('/:id/messages', validate(sendMessageSchema), async (req: AuthRequest, res) => {
   try {
-    const message = await createMessage(req.params.id, req.userId!, body);
+    const message = await createMessage(req.params.id, req.userId!, req.body.body);
     // Emit via socket to thread members
     try {
       getIO().to(`thread:${req.params.id}`).emit('new_message', message);

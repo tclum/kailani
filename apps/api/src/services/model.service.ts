@@ -45,10 +45,22 @@ export async function getModel(id: string) {
   });
 }
 
+export async function getMyModel(userId: string) {
+  return prisma.modelProfile.findUnique({ where: { userId } });
+}
+
 export async function updateMyModel(userId: string, data: Record<string, unknown>) {
   return prisma.modelProfile.upsert({
     where: { userId },
     update: data,
     create: { userId, displayName: (data.displayName as string) ?? '', ...data },
+  });
+}
+
+export async function addPortfolioImage(userId: string, imageUrl: string) {
+  return prisma.modelProfile.upsert({
+    where: { userId },
+    update: { portfolioImages: { push: imageUrl } },
+    create: { userId, displayName: '', portfolioImages: [imageUrl] },
   });
 }
