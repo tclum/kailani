@@ -5,13 +5,15 @@ export async function listPhotographers(opts: {
   specialties?: string[];
   page?: number;
   limit?: number;
+  approvedOnly?: boolean;
 }) {
-  const { location, specialties, page = 1, limit = 20 } = opts;
+  const { location, specialties, page = 1, limit = 20, approvedOnly = false } = opts;
   const skip = (page - 1) * limit;
 
   const where: any = {};
   if (location) where.location = { contains: location, mode: 'insensitive' };
   if (specialties?.length) where.specialties = { hasSome: specialties };
+  if (approvedOnly) where.user = { approved: true };
 
   const [profiles, total] = await prisma.$transaction([
     prisma.photographerProfile.findMany({
@@ -41,6 +43,7 @@ export async function getPhotographer(id: string) {
     include: { user: { select: { id: true, email: true, approved: true } } },
   });
 }
+
 
 export async function getMyPhotographer(userId: string) {
   return prisma.photographerProfile.findUnique({ where: { userId } });

@@ -19,8 +19,16 @@ router.get('/', async (req: AuthRequest, res) => {
 });
 
 router.post('/', validate(createThreadSchema), async (req: AuthRequest, res) => {
-  const thread = await findOrCreateThread(req.userId!, req.body.recipientId);
-  res.status(201).json(thread);
+  try {
+    const thread = await findOrCreateThread(req.userId!, req.body.recipientId);
+    res.status(201).json(thread);
+  } catch (err: any) {
+    if (err.message === 'RECIPIENT_NOT_FOUND') {
+      res.status(404).json({ error: 'Recipient not found' });
+    } else {
+      res.status(500).json({ error: 'Failed to create thread' });
+    }
+  }
 });
 
 router.get('/:id/messages', async (req: AuthRequest, res) => {

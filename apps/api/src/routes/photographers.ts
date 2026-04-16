@@ -20,6 +20,7 @@ router.get('/', async (req, res) => {
     location: location ? String(location) : undefined,
     specialties: specArr,
     page: page ? Number(page) : 1,
+    approvedOnly: true,
   });
   res.json(result);
 });
@@ -36,7 +37,7 @@ router.get('/me', requireAuth, requireRole('PHOTOGRAPHER'), async (req: AuthRequ
 
 router.get('/:id', async (req, res) => {
   const profile = await getPhotographer(req.params.id);
-  if (!profile) {
+  if (!profile || !profile.user.approved) {
     res.status(404).json({ error: 'Photographer not found' });
     return;
   }

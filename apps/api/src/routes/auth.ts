@@ -2,6 +2,7 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import { validate, registerSchema, loginSchema } from '../lib/validate';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 import {
   register,
   login,
@@ -135,6 +136,18 @@ router.post('/reset-password', async (req, res) => {
       res.status(400).json({ error: 'Invalid or expired reset link' });
     }
   }
+});
+
+router.get('/me', requireAuth, async (req: AuthRequest, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.userId! },
+    select: { id: true, email: true, role: true, approved: true, emailVerified: true },
+  });
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  res.json(user);
 });
 
 export default router;

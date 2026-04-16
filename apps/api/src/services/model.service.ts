@@ -5,13 +5,15 @@ export async function listModels(opts: {
   tags?: string[];
   page?: number;
   limit?: number;
+  approvedOnly?: boolean;
 }) {
-  const { location, tags, page = 1, limit = 20 } = opts;
+  const { location, tags, page = 1, limit = 20, approvedOnly = false } = opts;
   const skip = (page - 1) * limit;
 
   const where: any = {};
   if (location) where.location = { contains: location, mode: 'insensitive' };
   if (tags && tags.length > 0) where.tags = { hasSome: tags };
+  if (approvedOnly) where.user = { approved: true };
 
   const [profiles, total] = await prisma.$transaction([
     prisma.modelProfile.findMany({

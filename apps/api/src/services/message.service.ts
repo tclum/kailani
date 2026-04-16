@@ -1,20 +1,20 @@
 import { prisma } from '../lib/prisma';
 
+const userSelect = {
+  id: true,
+  email: true,
+  role: true,
+  modelProfile: { select: { displayName: true, profileImage: true, coverImage: true } },
+  brandProfile: { select: { brandName: true, logoUrl: true, profileImage: true } },
+  photographerProfile: { select: { displayName: true, profileImage: true } },
+} as const;
+
 export async function getThreadsForUser(userId: string) {
   return prisma.thread.findMany({
     where: { members: { some: { userId } } },
     include: {
       members: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              email: true,
-              modelProfile: { select: { displayName: true, coverImage: true } },
-              brandProfile: { select: { brandName: true, logoUrl: true } },
-            },
-          },
-        },
+        include: { user: { select: userSelect } },
       },
       messages: {
         orderBy: { createdAt: 'desc' },
@@ -26,6 +26,10 @@ export async function getThreadsForUser(userId: string) {
 }
 
 export async function findOrCreateThread(userId: string, recipientId: string) {
+  // Validate recipient exists
+  const recipient = await prisma.user.findUnique({ where: { id: recipientId } });
+  if (!recipient) throw new Error('RECIPIENT_NOT_FOUND');
+
   const existing = await prisma.thread.findFirst({
     where: {
       AND: [
@@ -53,16 +57,7 @@ export async function getMessages(threadId: string, userId: string) {
 
   return prisma.message.findMany({
     where: { threadId },
-    include: {
-      sender: {
-        select: {
-          id: true,
-          email: true,
-          modelProfile: { select: { displayName: true, coverImage: true } },
-          brandProfile: { select: { brandName: true, logoUrl: true } },
-        },
-      },
-    },
+    include: { sender: { select: userSelect } },
     orderBy: { createdAt: 'asc' },
   });
 }
@@ -70,15 +65,6 @@ export async function getMessages(threadId: string, userId: string) {
 export async function createMessage(threadId: string, senderId: string, body: string) {
   return prisma.message.create({
     data: { threadId, senderId, body },
-    include: {
-      sender: {
-        select: {
-          id: true,
-          email: true,
-          modelProfile: { select: { displayName: true, coverImage: true } },
-          brandProfile: { select: { brandName: true, logoUrl: true } },
-        },
-      },
-    },
+    include: { sender: { select: userSelect } },
   });
 }

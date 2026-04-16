@@ -13,6 +13,7 @@ router.get('/', async (req, res) => {
     location: location ? String(location) : undefined,
     tags: tagArr,
     page: page ? Number(page) : 1,
+    approvedOnly: true,
   });
   res.json(result);
 });
@@ -29,7 +30,7 @@ router.get('/me', requireAuth, requireRole('MODEL'), async (req: AuthRequest, re
 
 router.get('/:id', async (req, res) => {
   const model = await getModel(req.params.id);
-  if (!model) {
+  if (!model || !model.user.approved) {
     res.status(404).json({ error: 'Model not found' });
     return;
   }

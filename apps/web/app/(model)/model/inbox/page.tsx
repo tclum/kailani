@@ -1,5 +1,5 @@
 import { InboxPage } from '@/components/shared/InboxPage';
 
-export default function BrandInboxPage() {
+export default function ModelInboxPage() {
   return <InboxPage />;
 }

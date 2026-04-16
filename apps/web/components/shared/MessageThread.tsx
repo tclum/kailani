@@ -59,6 +59,7 @@ export function MessageThread({ threadId }: Props) {
           const name =
             msg.sender?.modelProfile?.displayName ??
             msg.sender?.brandProfile?.brandName ??
+            msg.sender?.photographerProfile?.displayName ??
             msg.sender?.email ??
             'Unknown';
           return (

@@ -24,7 +24,7 @@ export function validate(schema: ZodSchema) {
 export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  role: z.enum(['MODEL', 'BRAND'], { message: 'Invalid role.' }),
+  role: z.enum(['MODEL', 'BRAND', 'PHOTOGRAPHER'], { message: 'Invalid role.' }),
 });
 
 export const loginSchema = z.object({
