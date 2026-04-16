@@ -39,8 +39,8 @@ export const createCampaignSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   budget: z.string().optional(),
   location: z.string().optional(),
-  startDate: z.string().datetime({ offset: true }).optional(),
-  endDate: z.string().datetime({ offset: true }).optional(),
+  startDate: z.coerce.date().optional(),
+  endDate: z.coerce.date().optional(),
   tags: z.array(z.string()).optional(),
   status: z.enum(['DRAFT', 'OPEN', 'CLOSED', 'COMPLETED']).optional(),
 });

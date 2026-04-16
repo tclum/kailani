@@ -38,8 +38,8 @@ export default function NewCampaignPage() {
         status: form.status,
         budget: form.budget || undefined,
         location: form.location || undefined,
-        startDate: form.startDate || undefined,
-        endDate: form.endDate || undefined,
+        startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
+        endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
         tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
       };
       const campaign = await apiFetch<any>('/api/campaigns', { method: 'POST', body: payload });
