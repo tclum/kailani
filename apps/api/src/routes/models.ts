@@ -50,7 +50,7 @@ router.post(
     }
     // In production: upload req.file.buffer to S3 / Cloudinary and get back a URL.
     // For the scaffold we return a placeholder URL.
-    const imageUrl = `https://placeholder.kailani.app/uploads/${Date.now()}-${req.file.originalname}`;
+    const imageUrl = `https://placehold.co/800x1200/fce7f3/be185d?text=${encodeURIComponent(req.file.originalname)}`;
     res.json({ url: imageUrl });
   }
 );

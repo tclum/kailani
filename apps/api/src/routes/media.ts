@@ -19,7 +19,7 @@ router.post(
       return;
     }
     // Placeholder — replace with real S3/Cloudinary upload
-    const url = `https://placeholder.kailani.app/uploads/${Date.now()}-${req.file.originalname}`;
+    const url = `https://placehold.co/800x1200/fce7f3/be185d?text=${encodeURIComponent(req.file.originalname)}`;
     res.json({ url });
   }
 );
