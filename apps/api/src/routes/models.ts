@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { uploadSingle } from '../middleware/upload';
 import { validate, updateModelProfileSchema } from '../lib/validate';
-import { listModels, getModel, getMyModel, updateMyModel, addPortfolioImage } from '../services/model.service';
+import { listModels, getModel, getMyModel, updateMyModel, addPortfolioImage, removePortfolioImage } from '../services/model.service';
 
 const router = Router();
 
@@ -79,6 +79,36 @@ router.post(
     console.log('[portfolio] saved to db — portfolioImages:', saved.portfolioImages);
 
     res.json({ url: file.path });
+  }
+);
+
+router.delete('/me/portfolio', requireAuth, requireRole('MODEL'), async (req: AuthRequest, res) => {
+  const { url } = req.body as { url?: string };
+  if (!url) {
+    res.status(400).json({ error: 'url is required' });
+    return;
+  }
+  const profile = await removePortfolioImage(req.userId!, url);
+  res.json(profile);
+});
+
+router.post(
+  '/me/profile-image',
+  requireAuth,
+  requireRole('MODEL'),
+  uploadSingle('image'),
+  async (req: AuthRequest, res) => {
+    if (!req.file) {
+      res.status(400).json({ error: 'No image file provided' });
+      return;
+    }
+    const file = req.file as Express.Multer.File & { path: string };
+    if (!file.path) {
+      res.status(500).json({ error: 'Upload succeeded but URL was not returned' });
+      return;
+    }
+    const profile = await updateMyModel(req.userId!, { profileImage: file.path });
+    res.json({ url: file.path, profile });
   }
 );
 

@@ -1,4 +1,4 @@
-export type Role = 'MODEL' | 'BRAND' | 'ADMIN';
+export type Role = 'MODEL' | 'BRAND' | 'ADMIN' | 'PHOTOGRAPHER';
 
 export interface User {
   id: string;
@@ -14,15 +14,19 @@ export interface ModelProfile {
   userId: string;
   displayName: string;
   bio?: string;
-  height?: number;
-  bust?: number;
-  waist?: number;
-  hips?: number;
+  location?: string;
+  instagramUrl?: string;
+  heightCm?: number;
+  bustCm?: number;
+  waistCm?: number;
+  hipsCm?: number;
   shoeSize?: number;
   hairColor?: string;
   eyeColor?: string;
-  location?: string;
-  instagramUrl?: string;
+  skinTone?: string;
+  rates?: { dayRate?: number; halfDayRate?: number; hourlyRate?: number };
+  availability?: string[];
+  profileImage?: string;
   portfolioImages: string[];
   coverImage?: string;
   tags: string[];
@@ -39,6 +43,25 @@ export interface BrandProfile {
   logoUrl?: string;
   bio?: string;
   location?: string;
+  instagramUrl?: string;
+  profileImage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PhotographerProfile {
+  id: string;
+  userId: string;
+  displayName: string;
+  bio?: string;
+  location?: string;
+  instagramUrl?: string;
+  specialties: string[];
+  portfolioImages: string[];
+  coverImage?: string;
+  profileImage?: string;
+  rates?: { dayRate?: number; halfDayRate?: number; hourlyRate?: number };
+  availability?: string[];
   createdAt: string;
   updatedAt: string;
 }

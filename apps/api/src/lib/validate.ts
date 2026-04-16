@@ -75,6 +75,7 @@ export const updateBrandSchema = z.object({
   bio: z.string().optional(),
   location: z.string().optional(),
   instagramUrl: z.string().url().optional().or(z.literal('')),
+  profileImage: z.string().optional(),
 });
 
 // ── Model profile ─────────────────────────────────────────────────────────────
@@ -101,6 +102,7 @@ export const updateModelProfileSchema = z.object({
   tags:            z.array(z.string()).optional(),
   coverImage:      z.string().optional(),
   portfolioImages: z.array(z.string()).optional(),
+  profileImage:    z.string().optional(),
   rates:           ratesSchema,
   availability:    z.array(z.string()).optional(),
 });
@@ -115,6 +117,7 @@ export const updatePhotographerProfileSchema = z.object({
   specialties:     z.array(z.string()).optional(),
   coverImage:      z.string().optional(),
   portfolioImages: z.array(z.string()).optional(),
+  profileImage:    z.string().optional(),
   rates:           ratesSchema,
   availability:    z.array(z.string()).optional(),
 });

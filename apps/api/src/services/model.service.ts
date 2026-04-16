@@ -64,3 +64,12 @@ export async function addPortfolioImage(userId: string, imageUrl: string) {
     create: { userId, displayName: '', portfolioImages: [imageUrl] },
   });
 }
+
+export async function removePortfolioImage(userId: string, imageUrl: string) {
+  const profile = await prisma.modelProfile.findUnique({ where: { userId } });
+  if (!profile) throw new Error('Profile not found');
+  const updated = profile.portfolioImages.filter((url) => url !== imageUrl);
+  const data: Record<string, unknown> = { portfolioImages: updated };
+  if (profile.coverImage === imageUrl) data.coverImage = null;
+  return prisma.modelProfile.update({ where: { userId }, data });
+}

@@ -61,3 +61,12 @@ export async function addPhotographerPortfolioImage(userId: string, imageUrl: st
     create: { userId, displayName: '', portfolioImages: [imageUrl] },
   });
 }
+
+export async function removePhotographerPortfolioImage(userId: string, imageUrl: string) {
+  const profile = await prisma.photographerProfile.findUnique({ where: { userId } });
+  if (!profile) throw new Error('Profile not found');
+  const updated = profile.portfolioImages.filter((url) => url !== imageUrl);
+  const data: Record<string, unknown> = { portfolioImages: updated };
+  if (profile.coverImage === imageUrl) data.coverImage = null;
+  return prisma.photographerProfile.update({ where: { userId }, data });
+}

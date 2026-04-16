@@ -1,7 +1,11 @@
 'use client';
-import { useEffect, useState, KeyboardEvent } from 'react';
-import { MapPin, Instagram, Ruler, DollarSign, CalendarX2, User, X, ChevronRight, CheckCircle2, Sparkles, Palette, Tag } from 'lucide-react';
+import { useEffect, useState, useRef, KeyboardEvent } from 'react';
+import Image from 'next/image';
+import { MapPin, Instagram, Ruler, DollarSign, CalendarX2, User, X, ChevronRight, CheckCircle2, Sparkles, Palette, Tag, Camera } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
+import { getAccessToken } from '@/lib/auth';
+
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 type Tab = 'basic' | 'measurements' | 'rates' | 'availability';
 
@@ -38,6 +42,9 @@ export default function ModelProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     apiFetch<any>('/api/models/me').then((p) => {
@@ -62,8 +69,32 @@ export default function ModelProfilePage() {
       });
       setTags(p.tags ?? []);
       setUnavailableDates(p.availability ?? []);
+      if (p.profileImage) setProfileImage(p.profileImage);
     }).catch(() => {});
   }, []);
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await fetch(`${API}/api/models/me/profile-image`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${getAccessToken()}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? 'Upload failed'); return; }
+      setProfileImage(data.url);
+    } catch {
+      setError('Avatar upload failed — please try again');
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarRef.current) avatarRef.current.value = '';
+    }
+  }
 
   function upd(field: string, value: string) {
     setForm((p) => ({ ...p, [field]: value }));
@@ -164,7 +195,8 @@ export default function ModelProfilePage() {
 
         {/* Left: preview + progress */}
         <div className="lg:col-span-1 space-y-4">
-          <PreviewCard form={form} tags={tags} />
+          <PreviewCard form={form} tags={tags} profileImage={profileImage} onAvatarClick={() => avatarRef.current?.click()} uploading={uploadingAvatar} />
+          <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
 
           <div className="rounded-2xl border bg-card p-4 space-y-2">
             <div className="flex items-center justify-between text-sm">
@@ -481,16 +513,34 @@ function FormSection({ icon, title, required, children }: {
   );
 }
 
-function PreviewCard({ form, tags }: { form: any; tags: string[] }) {
+function PreviewCard({ form, tags, profileImage, onAvatarClick, uploading }: {
+  form: any; tags: string[]; profileImage: string | null;
+  onAvatarClick: () => void; uploading: boolean;
+}) {
   return (
     <div className="rounded-2xl border bg-card overflow-hidden">
       <div className="h-20 w-full" style={{ background: 'linear-gradient(135deg,#fce7f3,#fdf2f8,#f5f3ff)' }} />
       <div className="px-4 pb-4">
-        <div
-          className="w-16 h-16 rounded-full border-4 border-white -mt-8 mb-3 flex items-center justify-center text-2xl font-bold text-white shadow-md"
-          style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
-        >
-          {form.displayName ? form.displayName[0].toUpperCase() : '?'}
+        <div className="relative w-16 h-16 -mt-8 mb-3">
+          <div
+            className="w-16 h-16 rounded-full border-4 border-white overflow-hidden flex items-center justify-center text-2xl font-bold text-white shadow-md"
+            style={{ background: profileImage ? undefined : 'linear-gradient(135deg,#ec4899,#be185d)' }}
+          >
+            {profileImage ? (
+              <Image src={profileImage} alt="Profile" fill className="object-cover" />
+            ) : (
+              form.displayName ? form.displayName[0].toUpperCase() : '?'
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={onAvatarClick}
+            disabled={uploading}
+            className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-pink-500 text-white flex items-center justify-center shadow hover:bg-pink-600 transition-colors disabled:opacity-50"
+            title="Upload profile photo"
+          >
+            {uploading ? <span className="text-[10px]">…</span> : <Camera size={12} />}
+          </button>
         </div>
         <h3 className="font-bold text-lg leading-tight">
           {form.displayName || <span className="text-muted-foreground italic font-normal text-base">Display name</span>}

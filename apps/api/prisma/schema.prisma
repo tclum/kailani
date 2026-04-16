@@ -67,6 +67,7 @@ model ModelProfile {
   skinTone        String?
   rates           Json?
   availability    Json?
+  profileImage    String?
   portfolioImages String[]
   coverImage      String?
   tags            String[]
@@ -86,6 +87,7 @@ model BrandProfile {
   bio          String?
   location     String?
   instagramUrl String?
+  profileImage String?
   campaigns    Campaign[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -99,6 +101,7 @@ model PhotographerProfile {
   bio             String?
   location        String?
   instagramUrl    String?
+  profileImage    String?
   specialties     String[]
   portfolioImages String[]
   coverImage      String?

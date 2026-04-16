@@ -13,7 +13,9 @@ export function ModelProfile({ profile }: Props) {
     <div className="space-y-6">
       <div className="flex gap-6 items-start">
         <div className="w-48 h-64 relative rounded-lg overflow-hidden bg-muted flex-shrink-0">
-          {profile.coverImage ? (
+          {profile.profileImage ? (
+            <Image src={profile.profileImage} alt={profile.displayName} fill className="object-cover" />
+          ) : profile.coverImage ? (
             <Image src={profile.coverImage} alt={profile.displayName} fill className="object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-5xl text-muted-foreground">
@@ -53,13 +55,14 @@ export function ModelProfile({ profile }: Props) {
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-3 gap-4 text-sm">
-            {profile.height && <Stat label="Height" value={`${profile.height} cm`} />}
-            {profile.bust && <Stat label="Bust" value={`${profile.bust} cm`} />}
-            {profile.waist && <Stat label="Waist" value={`${profile.waist} cm`} />}
-            {profile.hips && <Stat label="Hips" value={`${profile.hips} cm`} />}
+            {profile.heightCm && <Stat label="Height" value={`${profile.heightCm} cm`} />}
+            {profile.bustCm && <Stat label="Bust" value={`${profile.bustCm} cm`} />}
+            {profile.waistCm && <Stat label="Waist" value={`${profile.waistCm} cm`} />}
+            {profile.hipsCm && <Stat label="Hips" value={`${profile.hipsCm} cm`} />}
             {profile.shoeSize && <Stat label="Shoe" value={String(profile.shoeSize)} />}
             {profile.hairColor && <Stat label="Hair" value={profile.hairColor} />}
             {profile.eyeColor && <Stat label="Eyes" value={profile.eyeColor} />}
+            {profile.skinTone && <Stat label="Skin" value={profile.skinTone} />}
           </dl>
         </CardContent>
       </Card>

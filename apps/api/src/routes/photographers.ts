@@ -8,6 +8,7 @@ import {
   getMyPhotographer,
   upsertMyPhotographer,
   addPhotographerPortfolioImage,
+  removePhotographerPortfolioImage,
 } from '../services/photographer.service';
 
 const router = Router();
@@ -64,6 +65,36 @@ router.post(
     }
     const saved = await addPhotographerPortfolioImage(req.userId!, file.path);
     res.json({ url: file.path, portfolioImages: saved.portfolioImages });
+  }
+);
+
+router.delete('/me/portfolio', requireAuth, requireRole('PHOTOGRAPHER'), async (req: AuthRequest, res) => {
+  const { url } = req.body as { url?: string };
+  if (!url) {
+    res.status(400).json({ error: 'url is required' });
+    return;
+  }
+  const profile = await removePhotographerPortfolioImage(req.userId!, url);
+  res.json(profile);
+});
+
+router.post(
+  '/me/profile-image',
+  requireAuth,
+  requireRole('PHOTOGRAPHER'),
+  uploadSingle('image'),
+  async (req: AuthRequest, res) => {
+    if (!req.file) {
+      res.status(400).json({ error: 'No image file provided' });
+      return;
+    }
+    const file = req.file as Express.Multer.File & { path: string };
+    if (!file.path) {
+      res.status(500).json({ error: 'Upload succeeded but URL was not returned' });
+      return;
+    }
+    const profile = await upsertMyPhotographer(req.userId!, { profileImage: file.path });
+    res.json({ url: file.path, profile });
   }
 );
 

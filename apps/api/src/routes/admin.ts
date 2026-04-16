@@ -15,8 +15,9 @@ router.get('/users', async (_req, res) => {
       role: true,
       approved: true,
       createdAt: true,
-      modelProfile: { select: { displayName: true } },
-      brandProfile: { select: { brandName: true } },
+      modelProfile: { select: { id: true, displayName: true } },
+      brandProfile: { select: { id: true, brandName: true } },
+      photographerProfile: { select: { id: true, displayName: true } },
     },
   });
   res.json(users);
