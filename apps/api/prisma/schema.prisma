@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MODEL
+  BRAND
+  ADMIN
+}
+
+enum CampaignStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  COMPLETED
+}
+
+enum ApplicationStatus {
+  PENDING
+  SHORTLISTED
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  role         Role
+  approved     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  modelProfile  ModelProfile?
+  brandProfile  BrandProfile?
+  sentMessages  Message[]      @relation("SentMessages")
+  threads       ThreadMember[]
+}
+
+model ModelProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName     String
+  bio             String?
+  height          Int?
+  bust            Int?
+  waist           Int?
+  hips            Int?
+  shoeSize        Float?
+  hairColor       String?
+  eyeColor        String?
+  location        String?
+  instagramUrl    String?
+  portfolioImages String[]
+  coverImage      String?
+  tags            String[]
+  applications    Application[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BrandProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brandName String
+  industry  String?
+  website   String?
+  logoUrl   String?
+  bio       String?
+  location  String?
+  campaigns Campaign[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id           String         @id @default(cuid())
+  brandId      String
+  brand        BrandProfile   @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  title        String
+  description  String
+  budget       String?
+  location     String?
+  startDate    DateTime?
+  endDate      DateTime?
+  tags         String[]
+  status       CampaignStatus @default(DRAFT)
+  applications Application[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Application {
+  id         String            @id @default(cuid())
+  campaignId String
+  campaign   Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  modelId    String
+  model      ModelProfile      @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  coverNote  String?
+  status     ApplicationStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@unique([campaignId, modelId])
+}
+
+model Thread {
+  id        String         @id @default(cuid())
+  members   ThreadMember[]
+  messages  Message[]
+  createdAt DateTime       @default(now())
+}
+
+model ThreadMember {
+  threadId String
+  userId   String
+  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([threadId, userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  threadId  String
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+}

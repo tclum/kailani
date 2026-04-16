@@ -1,0 +1,42 @@
+import 'dotenv/config';
+import http from 'http';
+import express from 'express';
+import cors from 'cors';
+
+import { initSocket } from './lib/socket';
+import authRoutes from './routes/auth';
+import modelRoutes from './routes/models';
+import brandRoutes from './routes/brands';
+import campaignRoutes from './routes/campaigns';
+import messageRoutes from './routes/messages';
+import mediaRoutes from './routes/media';
+import adminRoutes from './routes/admin';
+
+const app = express();
+const httpServer = http.createServer(app);
+
+initSocket(httpServer);
+
+app.use(cors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:3000', credentials: true }));
+app.use(express.json());
+
+app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+
+app.use('/api/auth', authRoutes);
+app.use('/api/models', modelRoutes);
+app.use('/api/brands', brandRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/threads', messageRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Global error handler
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+const PORT = process.env.PORT ?? 4000;
+httpServer.listen(PORT, () => {
+  console.log(`Kailani API running on http://localhost:${PORT}`);
+});
