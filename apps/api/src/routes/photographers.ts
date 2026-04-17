@@ -45,8 +45,14 @@ router.get('/:id', async (req, res) => {
 });
 
 router.put('/me', requireAuth, requireRole('PHOTOGRAPHER'), validate(updatePhotographerProfileSchema), async (req: AuthRequest, res) => {
-  const profile = await upsertMyPhotographer(req.userId!, req.body);
-  res.json(profile);
+  console.log('[PUT /photographers/me] userId:', req.userId, 'body:', JSON.stringify(req.body));
+  try {
+    const profile = await upsertMyPhotographer(req.userId!, req.body);
+    res.json(profile);
+  } catch (err) {
+    console.error('[PUT /photographers/me] error:', err);
+    res.status(500).json({ error: 'Failed to save profile' });
+  }
 });
 
 router.post(
@@ -55,17 +61,27 @@ router.post(
   requireRole('PHOTOGRAPHER'),
   uploadSingle('image'),
   async (req: AuthRequest, res) => {
+    console.log('[POST /photographers/me/portfolio] userId:', req.userId, 'file:', req.file?.originalname);
     if (!req.file) {
+      console.error('[POST /photographers/me/portfolio] no file on req');
       res.status(400).json({ error: 'No image file provided' });
       return;
     }
     const file = req.file as Express.Multer.File & { path: string; filename: string };
+    console.log('[POST /photographers/me/portfolio] cloudinary result:', { url: file.path, publicId: file.filename });
     if (!file.path) {
+      console.error('[POST /photographers/me/portfolio] cloudinary URL missing — full req.file:', req.file);
       res.status(500).json({ error: 'Upload succeeded but URL was not returned' });
       return;
     }
-    const saved = await addPhotographerPortfolioImage(req.userId!, file.path);
-    res.json({ url: file.path, portfolioImages: saved.portfolioImages });
+    try {
+      const saved = await addPhotographerPortfolioImage(req.userId!, file.path);
+      console.log('[POST /photographers/me/portfolio] saved to db — count:', saved.portfolioImages.length);
+      res.json({ url: file.path, portfolioImages: saved.portfolioImages });
+    } catch (err) {
+      console.error('[POST /photographers/me/portfolio] db error:', err);
+      res.status(500).json({ error: 'Failed to save portfolio image' });
+    }
   }
 );
 
