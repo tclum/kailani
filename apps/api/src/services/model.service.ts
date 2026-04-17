@@ -7,8 +7,30 @@ export async function listModels(opts: {
   limit?: number;
   approvedOnly?: boolean;
   excludeUserIds?: string[];
+  featured?: boolean;
 }) {
-  const { location, tags, page = 1, limit = 20, approvedOnly = false, excludeUserIds } = opts;
+  const { location, tags, page = 1, limit = 20, approvedOnly = false, excludeUserIds, featured } = opts;
+
+  // Featured: random approved models with profile image + portfolio
+  if (featured) {
+    const all = await prisma.modelProfile.findMany({
+      where: { user: { approved: true }, profileImage: { not: null } },
+      select: {
+        id: true, userId: true, displayName: true, bio: true, location: true,
+        coverImage: true, profileImage: true, tags: true, heightCm: true,
+        portfolioImages: true, createdAt: true,
+        user: { select: { verified: true } },
+      },
+    });
+    const withPortfolio = all.filter((m) => m.portfolioImages.length > 0);
+    // Fisher-Yates shuffle
+    for (let i = withPortfolio.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [withPortfolio[i], withPortfolio[j]] = [withPortfolio[j], withPortfolio[i]];
+    }
+    const profiles = withPortfolio.slice(0, limit).map(({ portfolioImages: _p, ...m }) => m);
+    return { profiles, total: profiles.length, page: 1, limit };
+  }
   const skip = (page - 1) * limit;
 
   const where: any = {};

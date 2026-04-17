@@ -8,7 +8,7 @@ import { prisma } from '../lib/prisma';
 const router = Router();
 
 router.get('/', async (req: AuthRequest, res) => {
-  const { location, tags, page } = req.query;
+  const { location, tags, page, limit, featured } = req.query;
   const tagArr = tags ? String(tags).split(',') : undefined;
 
   // Exclude blocked users if authenticated
@@ -25,6 +25,8 @@ router.get('/', async (req: AuthRequest, res) => {
     location: location ? String(location) : undefined,
     tags: tagArr,
     page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : undefined,
+    featured: featured === 'true',
     approvedOnly: true,
     excludeUserIds,
   });

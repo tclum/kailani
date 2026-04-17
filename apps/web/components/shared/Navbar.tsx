@@ -122,12 +122,15 @@ export function Navbar() {
   return (
     <nav className="border-b bg-background">
       <div className="container flex h-16 items-center justify-between">
-        <Link href={getDashboardHref()} className="text-xl font-bold tracking-tight">
+        <Link href="/" className="text-xl font-bold tracking-tight">
           Kailani
         </Link>
         <div className="flex items-center gap-3">
           {user ? (
             <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href={getDashboardHref()}>Home</Link>
+              </Button>
               {user.role === 'BRAND' && (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/brand/profile">Brand Profile</Link>
