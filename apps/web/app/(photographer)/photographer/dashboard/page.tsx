@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Camera, Images, Users, MessageSquare, Zap, User, ChevronRight, Heart } from 'lucide-react';
+import { Camera, Image as ImageIcon, Users, MessageSquare, Zap, User, ChevronRight, Heart } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 
 interface PhotographerProfile {
@@ -131,7 +131,7 @@ export default function PhotographerDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         <StatCard
-          icon={<Images size={20} />}
+          icon={<ImageIcon size={20} />}
           label="Portfolio images"
           value={profile?.portfolioImages.length ?? 0}
           color="linear-gradient(135deg,#ec4899,#be185d)"
