@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   ArrowLeft, MapPin, DollarSign, Calendar, Star, CheckCircle2, XCircle,
-  MessageSquare, Users, Tag,
+  MessageSquare, Users, Tag, CheckCheck,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { apiFetch } from '@/lib/api';
@@ -170,6 +170,38 @@ function ApplicantCard({
   );
 }
 
+// ─── Mark Completed Modal ─────────────────────────────────────────────────────
+
+function MarkCompletedModal({ onConfirm, onCancel, loading }: { onConfirm: () => void; onCancel: () => void; loading: boolean }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+      <div className="bg-card rounded-2xl w-full max-w-md p-6 space-y-4 shadow-xl">
+        <h2 className="text-lg font-bold">Mark campaign as completed?</h2>
+        <p className="text-sm text-muted-foreground">
+          This will notify all accepted models and unlock structured reviews. This action cannot be undone.
+        </p>
+        <div className="flex gap-3 pt-2">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="flex-1 h-10 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 h-10 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
+          >
+            {loading ? 'Completing…' : <><CheckCheck size={15} /> Mark Completed</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CampaignDetailPage() {
@@ -178,6 +210,8 @@ export default function CampaignDetailPage() {
   const [applications, setApplications] = useState<ApplicationWithModel[]>([]);
   const [filter, setFilter] = useState<ApplicationStatus | 'ALL'>('ALL');
   const [loading, setLoading] = useState(true);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -193,6 +227,21 @@ export default function CampaignDetailPage() {
     setApplications((prev) => prev.map((a) => a.id === appId ? { ...a, status } : a));
   }
 
+  async function handleMarkCompleted() {
+    setCompleting(true);
+    try {
+      const updated = await apiFetch<CampaignWithBrand>(`/api/campaigns/${id}`, {
+        method: 'PUT',
+        body: { status: 'COMPLETED' },
+      });
+      setCampaign(updated);
+      setShowCompleteModal(false);
+    } finally {
+      setCompleting(false);
+    }
+  }
+
+  const hasAccepted = applications.some((a) => a.status === 'ACCEPTED');
   const filtered = filter === 'ALL' ? applications : applications.filter((a) => a.status === filter);
 
   if (loading) return (
@@ -204,6 +253,14 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="space-y-6 max-w-5xl">
+      {showCompleteModal && (
+        <MarkCompletedModal
+          onConfirm={handleMarkCompleted}
+          onCancel={() => setShowCompleteModal(false)}
+          loading={completing}
+        />
+      )}
+
       {/* Back */}
       <Link href="/brand/campaigns" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft size={15} /> All campaigns
@@ -220,8 +277,18 @@ export default function CampaignDetailPage() {
             <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${
               campaign.status === 'OPEN' ? 'bg-green-100 text-green-700' :
               campaign.status === 'DRAFT' ? 'bg-amber-100 text-amber-700' :
+              campaign.status === 'COMPLETED' ? 'bg-purple-100 text-purple-700' :
               'bg-muted text-muted-foreground'
             }`}>{campaign.status}</span>
+            {campaign.status === 'OPEN' && hasAccepted && (
+              <button
+                onClick={() => setShowCompleteModal(true)}
+                className="h-9 px-4 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5"
+                style={{ background: 'linear-gradient(135deg,#8b5cf6,#6d28d9)' }}
+              >
+                <CheckCheck size={13} /> Mark Completed
+              </button>
+            )}
             <Link
               href={`/brand/campaigns/${id}/edit`}
               className="h-9 px-4 rounded-xl text-xs font-semibold border border-border hover:bg-muted transition-colors flex items-center"

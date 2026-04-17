@@ -199,6 +199,32 @@ export async function sendCommunityFlaggedEmail(adminEmail: string, flaggedUserN
   });
 }
 
+export async function sendCampaignCompletedEmail(
+  to: string,
+  modelName: string,
+  campaignTitle: string,
+  brandName: string,
+  brandProfileUrl: string,
+): Promise<void> {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Campaign wrapped — leave a review for ${brandName}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <h2 style="color:#ec4899">Campaign completed 🎉</h2>
+        <p>Hi ${modelName},</p>
+        <p>The campaign <strong>${campaignTitle}</strong> by <strong>${brandName}</strong> has been marked as completed.</p>
+        <p>You can now leave a structured review for the brand and share your experience with the community.</p>
+        <a href="${brandProfileUrl}"
+           style="display:inline-block;padding:12px 24px;background:#ec4899;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">
+          Leave a Review
+        </a>
+      </div>
+    `,
+  });
+}
+
 export async function sendPasswordResetEmail(to: string, token: string): Promise<void> {
   const url = `${FRONTEND}/reset-password?token=${token}`;
   await resend.emails.send({

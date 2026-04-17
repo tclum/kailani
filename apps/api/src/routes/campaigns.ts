@@ -18,7 +18,7 @@ import {
   getMyApplications,
   updateApplicationStatus,
 } from '../services/campaign.service';
-import { sendApplicationAcceptedEmail, sendApplicationRejectedEmail } from '../services/email.service';
+import { sendApplicationAcceptedEmail, sendApplicationRejectedEmail, sendCampaignCompletedEmail } from '../services/email.service';
 import { prisma } from '../lib/prisma';
 
 const router = Router();
@@ -63,6 +63,23 @@ router.post('/', requireAuth, requireRole('BRAND'), validate(createCampaignSchem
   res.status(201).json(campaign);
 });
 
+// ─── Model: my application for a campaign ────────────────────────────────────
+
+router.get('/:id/my-application', requireAuth, requireRole('MODEL'), async (req: AuthRequest, res) => {
+  try {
+    const model = await prisma.modelProfile.findUnique({ where: { userId: req.userId! } });
+    if (!model) { res.json(null); return; }
+    const app = await prisma.application.findFirst({
+      where: { campaignId: req.params.id, modelId: model.id },
+      select: { id: true, status: true, createdAt: true },
+    });
+    res.json(app ?? null);
+  } catch (err) {
+    console.error('[campaigns/my-application]', err);
+    res.status(500).json({ error: 'Failed to load application' });
+  }
+});
+
 // ─── Campaign CRUD ────────────────────────────────────────────────────────────
 
 router.get('/:id', async (req, res) => {
@@ -87,6 +104,32 @@ router.put('/:id', requireAuth, requireRole('BRAND'), validate(updateCampaignSch
   }
   const updated = await updateCampaign(req.params.id, brand.id, req.body);
   res.json(updated);
+
+  // When marking COMPLETED, email all accepted models
+  if (req.body.status === 'COMPLETED') {
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const acceptedApps = await prisma.application.findMany({
+      where: { campaignId: req.params.id, status: 'ACCEPTED' },
+      include: {
+        model: {
+          select: { displayName: true, user: { select: { email: true } } },
+        },
+      },
+    });
+    for (const app of acceptedApps) {
+      const email = app.model?.user?.email;
+      const name = app.model?.displayName ?? '';
+      if (email) {
+        sendCampaignCompletedEmail(
+          email,
+          name,
+          updated.title,
+          brand.brandName,
+          `${frontendUrl}/brand/${brand.userId}`,
+        ).catch(() => {});
+      }
+    }
+  }
 });
 
 router.delete('/:id', requireAuth, requireRole('BRAND'), async (req: AuthRequest, res) => {

@@ -1,13 +1,15 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, MapPin, Tag, Calendar, DollarSign, X, ChevronRight, Building2,
-  Send, CheckCircle2, Users,
+  Search, MapPin, Calendar, DollarSign, X, ChevronRight, Building2,
+  Send, CheckCircle2, Users, MessageSquare,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api';
-import type { CampaignWithBrand } from '@kailani/types';
+import { getCurrentUser } from '@/lib/auth';
+import type { CampaignWithBrand, ApplicationStatus } from '@kailani/types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -155,15 +157,92 @@ function ApplyDrawer({
   );
 }
 
+// ─── Application status badge/action ─────────────────────────────────────────
+
+function ApplicationAction({
+  status,
+  campaign,
+  onApply,
+}: {
+  status: ApplicationStatus | null;
+  campaign: CampaignWithBrand;
+  onApply: (c: CampaignWithBrand) => void;
+}) {
+  const router = useRouter();
+  const me = getCurrentUser();
+  const [messaging, setMessaging] = useState(false);
+
+  async function handleMessage() {
+    if (!me || !campaign.brand.userId) return;
+    setMessaging(true);
+    try {
+      const thread = await apiFetch<{ id: string }>('/api/threads', {
+        method: 'POST',
+        body: { recipientId: campaign.brand.userId },
+      });
+      router.push(`/model/inbox?thread=${thread.id}`);
+    } catch { setMessaging(false); }
+  }
+
+  if (status === null) {
+    return (
+      <button
+        onClick={() => onApply(campaign)}
+        className="ml-auto h-9 px-4 rounded-xl text-sm font-semibold text-white flex items-center gap-1.5 hover:opacity-90"
+        style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
+      >
+        <ChevronRight size={14} /> Apply
+      </button>
+    );
+  }
+  if (status === 'PENDING') {
+    return (
+      <span className="ml-auto h-9 px-4 rounded-xl text-sm font-semibold bg-muted text-muted-foreground flex items-center gap-1.5">
+        Applied
+      </span>
+    );
+  }
+  if (status === 'SHORTLISTED') {
+    return (
+      <span className="ml-auto h-9 px-4 rounded-xl text-sm font-semibold bg-amber-100 text-amber-700 flex items-center gap-1.5">
+        <CheckCircle2 size={14} /> Shortlisted
+      </span>
+    );
+  }
+  if (status === 'ACCEPTED') {
+    return (
+      <div className="ml-auto flex items-center gap-2">
+        <span className="h-9 px-3 rounded-xl text-xs font-semibold bg-green-100 text-green-700 flex items-center gap-1.5">
+          <CheckCircle2 size={13} /> Accepted
+        </span>
+        <button
+          onClick={handleMessage}
+          disabled={messaging}
+          className="h-9 px-3 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
+        >
+          <MessageSquare size={13} /> Message Brand
+        </button>
+      </div>
+    );
+  }
+  // REJECTED
+  return (
+    <span className="ml-auto h-9 px-4 rounded-xl text-sm font-semibold bg-muted text-muted-foreground flex items-center">
+      Not Selected
+    </span>
+  );
+}
+
 // ─── Campaign card ─────────────────────────────────────────────────────────────
 
 function CampaignDiscoveryCard({
   campaign,
-  applied,
+  applicationStatus,
   onApply,
 }: {
   campaign: CampaignWithBrand;
-  applied: boolean;
+  applicationStatus: ApplicationStatus | null;
   onApply: (c: CampaignWithBrand) => void;
 }) {
   return (
@@ -201,24 +280,17 @@ function CampaignDiscoveryCard({
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-auto pt-2">
+        <div className="flex items-center justify-between mt-auto pt-2 flex-wrap gap-2">
           {campaign._count?.applications != null && (
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Users size={11} /> {campaign._count.applications} applicant{campaign._count.applications !== 1 ? 's' : ''}
             </span>
           )}
-          <button
-            onClick={() => onApply(campaign)}
-            disabled={applied}
-            className={`ml-auto h-9 px-4 rounded-xl text-sm font-semibold flex items-center gap-1.5 transition-all ${
-              applied
-                ? 'bg-green-100 text-green-700 cursor-default'
-                : 'text-white hover:opacity-90'
-            }`}
-            style={applied ? {} : { background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
-          >
-            {applied ? <><CheckCircle2 size={14} /> Applied</> : <><ChevronRight size={14} /> Apply</>}
-          </button>
+          <ApplicationAction
+            status={applicationStatus}
+            campaign={campaign}
+            onApply={onApply}
+          />
         </div>
       </div>
     </div>
@@ -235,7 +307,8 @@ export default function ModelCampaignsPage() {
   const [location, setLocation] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [activeCampaign, setActiveCampaign] = useState<CampaignWithBrand | null>(null);
-  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
+  // campaignId -> ApplicationStatus | null (null means no application)
+  const [applicationStatuses, setApplicationStatuses] = useState<Record<string, ApplicationStatus>>({});
 
   useEffect(() => {
     setLoading(true);
@@ -243,7 +316,25 @@ export default function ModelCampaignsPage() {
     if (location) params.set('location', location);
     if (selectedTags.length) params.set('tags', selectedTags.join(','));
     apiFetch<any>(`/api/campaigns?${params}`)
-      .then((r) => { setCampaigns(r.campaigns ?? []); setTotal(r.total ?? 0); })
+      .then(async (r) => {
+        const list: CampaignWithBrand[] = r.campaigns ?? [];
+        setCampaigns(list);
+        setTotal(r.total ?? 0);
+        // Fetch application status for each campaign in parallel
+        const entries = await Promise.all(
+          list.map(async (c) => {
+            const app = await apiFetch<{ id: string; status: ApplicationStatus } | null>(
+              `/api/campaigns/${c.id}/my-application`,
+            ).catch(() => null);
+            return [c.id, app?.status ?? null] as [string, ApplicationStatus | null];
+          }),
+        );
+        const map: Record<string, ApplicationStatus> = {};
+        for (const [id, status] of entries) {
+          if (status) map[id] = status;
+        }
+        setApplicationStatuses(map);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [location, selectedTags]);
@@ -266,7 +357,7 @@ export default function ModelCampaignsPage() {
             campaign={activeCampaign}
             onClose={() => setActiveCampaign(null)}
             onApplied={(id) => {
-              setAppliedIds((prev) => new Set([...prev, id]));
+              setApplicationStatuses((prev) => ({ ...prev, [id]: 'PENDING' }));
               setTimeout(() => setActiveCampaign(null), 1500);
             }}
           />
@@ -346,7 +437,7 @@ export default function ModelCampaignsPage() {
               <CampaignDiscoveryCard
                 key={c.id}
                 campaign={c}
-                applied={appliedIds.has(c.id)}
+                applicationStatus={applicationStatuses[c.id] ?? null}
                 onApply={setActiveCampaign}
               />
             ))}
