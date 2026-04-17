@@ -15,6 +15,7 @@ import adminRoutes from './routes/admin';
 import swipeRoutes from './routes/swipe';
 
 const app = express();
+app.set('trust proxy', 1);
 const httpServer = http.createServer(app);
 
 initSocket(httpServer);

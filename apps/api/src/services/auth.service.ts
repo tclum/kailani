@@ -37,11 +37,15 @@ export async function register(email: string, password: string, role: Role) {
     });
 
     if (role === 'MODEL') {
-      await tx.modelProfile.create({ data: { userId: newUser.id, displayName: '' } });
+      await tx.modelProfile.create({
+        data: { userId: newUser.id, displayName: '', tags: [], portfolioImages: [] },
+      });
     } else if (role === 'BRAND') {
       await tx.brandProfile.create({ data: { userId: newUser.id, brandName: '' } });
     } else if (role === 'PHOTOGRAPHER') {
-      await tx.photographerProfile.create({ data: { userId: newUser.id, displayName: '' } });
+      await tx.photographerProfile.create({
+        data: { userId: newUser.id, displayName: '', specialties: [], portfolioImages: [] },
+      });
     }
 
     return newUser;
