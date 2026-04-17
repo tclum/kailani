@@ -77,7 +77,7 @@ export function StructuredReviewForm({ revieweeId, revieweeName, revieweeRole, c
   const [error, setError] = useState('');
 
   const numericDims = dims.filter((d) => !d.isBoolean);
-  const allNumericFilled = numericDims.every((d) => (scores[d.key] ?? 0) > 0);
+  const allNumericFilled = numericDims.every((d) => ((scores[d.key] as number) ?? 0) > 0);
 
   async function submit() {
     if (!allNumericFilled) { setError('Please rate all dimensions'); return; }
