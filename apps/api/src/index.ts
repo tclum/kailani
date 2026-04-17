@@ -12,6 +12,7 @@ import messageRoutes from './routes/messages';
 import mediaRoutes from './routes/media';
 import photographerRoutes from './routes/photographers';
 import adminRoutes from './routes/admin';
+import swipeRoutes from './routes/swipe';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -31,6 +32,7 @@ app.use('/api/threads', messageRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/photographers', photographerRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/swipe', swipeRoutes);
 
 // Global error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

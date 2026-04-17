@@ -48,6 +48,9 @@ model User {
   photographerProfile PhotographerProfile?
   sentMessages        Message[]             @relation("SentMessages")
   threads             ThreadMember[]
+  swipesMade          Swipe[]               @relation("SwipesMade")
+  matchesAsUser1      Match[]               @relation("MatchesAsUser1")
+  matchesAsUser2      Match[]               @relation("MatchesAsUser2")
 }
 
 model ModelProfile {
@@ -167,4 +170,27 @@ model Message {
   sender    User     @relation("SentMessages", fields: [senderId], references: [id])
   body      String
   createdAt DateTime @default(now())
+}
+
+model Swipe {
+  id         String   @id @default(cuid())
+  swiperId   String
+  targetId   String
+  targetType String
+  direction  String
+  createdAt  DateTime @default(now())
+  swiper     User     @relation("SwipesMade", fields: [swiperId], references: [id])
+
+  @@unique([swiperId, targetId, targetType])
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  createdAt DateTime @default(now())
+  user1     User     @relation("MatchesAsUser1", fields: [user1Id], references: [id])
+  user2     User     @relation("MatchesAsUser2", fields: [user2Id], references: [id])
+
+  @@unique([user1Id, user2Id])
 }

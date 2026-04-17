@@ -2,7 +2,7 @@
 import { SwipeStack } from '@/components/swipe/SwipeStack';
 import { Zap } from 'lucide-react';
 
-export default function BrandDiscoverPage() {
+export default function ModelDiscoverPage() {
   return (
     <div className="max-w-lg mx-auto">
       <div className="flex items-center gap-3 mb-6">
@@ -13,11 +13,11 @@ export default function BrandDiscoverPage() {
           <Zap size={20} className="text-white" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Discover Models</h1>
-          <p className="text-sm text-muted-foreground">Swipe right on talent you want to work with</p>
+          <h1 className="text-2xl font-bold tracking-tight">Discover Campaigns</h1>
+          <p className="text-sm text-muted-foreground">Swipe right on campaigns you love</p>
         </div>
       </div>
-      <SwipeStack inboxHref="/brand/inbox" />
+      <SwipeStack inboxHref="/model/inbox" />
     </div>
   );
 }

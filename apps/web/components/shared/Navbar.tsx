@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearTokens, getCurrentUser } from '@/lib/auth';
 
@@ -37,7 +37,16 @@ export function Navbar() {
     return null;
   }
 
+  function getDiscoverHref() {
+    if (!user) return null;
+    if (user.role === 'MODEL') return '/model/discover';
+    if (user.role === 'BRAND') return '/brand/discover';
+    if (user.role === 'PHOTOGRAPHER') return '/photographer/discover';
+    return null;
+  }
+
   const inboxHref = getInboxHref();
+  const discoverHref = getDiscoverHref();
 
   return (
     <nav className="border-b bg-background">
@@ -51,6 +60,14 @@ export function Navbar() {
               {user.role === 'BRAND' && (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/brand/profile">Brand Profile</Link>
+                </Button>
+              )}
+              {discoverHref && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={discoverHref} className="flex items-center gap-1.5">
+                    <Zap size={15} />
+                    Discover
+                  </Link>
                 </Button>
               )}
               {inboxHref && (
