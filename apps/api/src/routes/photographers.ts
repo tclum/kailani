@@ -49,9 +49,9 @@ router.put('/me', requireAuth, requireRole('PHOTOGRAPHER'), validate(updatePhoto
   try {
     const profile = await upsertMyPhotographer(req.userId!, req.body);
     res.json(profile);
-  } catch (err) {
+  } catch (err: any) {
     console.error('[PUT /photographers/me] error:', err);
-    res.status(500).json({ error: 'Failed to save profile' });
+    res.status(500).json({ error: 'Failed to save profile', detail: err?.message ?? String(err) });
   }
 });
 
