@@ -34,6 +34,7 @@ export interface ApiThread {
   createdAt: string;
   members: ApiThreadMember[];
   messages: Array<{ id: string; body: string; createdAt: string; senderId: string }>;
+  unreadCount: number;
 }
 
 export interface ApiThreadMember {

@@ -116,6 +116,37 @@ router.put('/verification/:id/reject', async (req: AuthRequest, res) => {
   res.json({ ok: true });
 });
 
+// ─── Reports queue ────────────────────────────────────────────────────────────
+
+const reportUserSelect = {
+  id: true, email: true, role: true,
+  modelProfile: { select: { displayName: true, profileImage: true } },
+  brandProfile: { select: { brandName: true, profileImage: true } },
+  photographerProfile: { select: { displayName: true, profileImage: true } },
+} as const;
+
+router.get('/reports', async (req, res) => {
+  const { resolved } = req.query;
+  const where = resolved === 'true' ? { resolved: true } : { resolved: false };
+  const reports = await prisma.report.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      reporter: { select: reportUserSelect },
+      reported: { select: reportUserSelect },
+    },
+  });
+  res.json({ reports });
+});
+
+router.put('/reports/:id/resolve', async (req, res) => {
+  const report = await prisma.report.update({
+    where: { id: req.params.id },
+    data: { resolved: true },
+  });
+  res.json(report);
+});
+
 router.get('/stats', async (_req, res) => {
   const [totalUsers, models, brands, campaigns, applications] = await prisma.$transaction([
     prisma.user.count(),

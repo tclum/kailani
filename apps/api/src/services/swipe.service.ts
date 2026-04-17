@@ -19,25 +19,30 @@ export interface SwipeCard {
 /** Return next 10 swipe cards for the given user */
 export async function getSwipeQueue(userId: string, role: string): Promise<SwipeCard[]> {
   // IDs already swiped on (any direction)
-  const swiped = await prisma.swipe.findMany({
-    where: { swiperId: userId },
-    select: { targetId: true, targetType: true },
-  });
+  const [swiped, blocksGiven, blocksReceived] = await Promise.all([
+    prisma.swipe.findMany({ where: { swiperId: userId }, select: { targetId: true, targetType: true } }),
+    prisma.block.findMany({ where: { blockerId: userId }, select: { blockedId: true } }),
+    prisma.block.findMany({ where: { blockedId: userId }, select: { blockerId: true } }),
+  ]);
   const swipedIds = new Set(swiped.map((s) => `${s.targetType}:${s.targetId}`));
+  const blockedUserIds = new Set([
+    ...blocksGiven.map((b) => b.blockedId),
+    ...blocksReceived.map((b) => b.blockerId),
+  ]);
 
   if (role === 'MODEL') {
-    return getModelQueue(userId, swipedIds);
+    return getModelQueue(userId, swipedIds, blockedUserIds);
   }
   if (role === 'BRAND') {
-    return getBrandQueue(userId, swipedIds);
+    return getBrandQueue(userId, swipedIds, blockedUserIds);
   }
   if (role === 'PHOTOGRAPHER') {
-    return getPhotographerQueue(userId, swipedIds);
+    return getPhotographerQueue(userId, swipedIds, blockedUserIds);
   }
   return [];
 }
 
-async function getModelQueue(userId: string, swiped: Set<string>): Promise<SwipeCard[]> {
+async function getModelQueue(userId: string, swiped: Set<string>, blocked: Set<string>): Promise<SwipeCard[]> {
   const campaigns = await prisma.campaign.findMany({
     where: { status: 'OPEN' },
     include: {
@@ -50,7 +55,7 @@ async function getModelQueue(userId: string, swiped: Set<string>): Promise<Swipe
   });
 
   return campaigns
-    .filter((c) => !swiped.has(`CAMPAIGN:${c.id}`))
+    .filter((c) => !swiped.has(`CAMPAIGN:${c.id}`) && !blocked.has(c.brand.userId))
     .slice(0, 10)
     .map((c) => ({
       id: c.id,
@@ -66,7 +71,7 @@ async function getModelQueue(userId: string, swiped: Set<string>): Promise<Swipe
     }));
 }
 
-async function getBrandQueue(userId: string, swiped: Set<string>): Promise<SwipeCard[]> {
+async function getBrandQueue(userId: string, swiped: Set<string>, blocked: Set<string>): Promise<SwipeCard[]> {
   const models = await prisma.modelProfile.findMany({
     where: { user: { approved: true } },
     include: { user: { select: { id: true } } },
@@ -75,7 +80,7 @@ async function getBrandQueue(userId: string, swiped: Set<string>): Promise<Swipe
   });
 
   return models
-    .filter((m) => m.user.id !== userId && !swiped.has(`MODEL:${m.user.id}`))
+    .filter((m) => m.user.id !== userId && !swiped.has(`MODEL:${m.user.id}`) && !blocked.has(m.user.id))
     .slice(0, 10)
     .map((m) => ({
       id: m.user.id,
@@ -89,7 +94,7 @@ async function getBrandQueue(userId: string, swiped: Set<string>): Promise<Swipe
     }));
 }
 
-async function getPhotographerQueue(userId: string, swiped: Set<string>): Promise<SwipeCard[]> {
+async function getPhotographerQueue(userId: string, swiped: Set<string>, blocked: Set<string>): Promise<SwipeCard[]> {
   const [models, brands] = await Promise.all([
     prisma.modelProfile.findMany({
       where: { user: { approved: true } },
@@ -106,7 +111,7 @@ async function getPhotographerQueue(userId: string, swiped: Set<string>): Promis
   ]);
 
   const modelCards: SwipeCard[] = models
-    .filter((m) => m.user.id !== userId && !swiped.has(`MODEL:${m.user.id}`))
+    .filter((m) => m.user.id !== userId && !swiped.has(`MODEL:${m.user.id}`) && !blocked.has(m.user.id))
     .map((m) => ({
       id: m.user.id,
       targetType: 'MODEL' as const,
@@ -119,7 +124,7 @@ async function getPhotographerQueue(userId: string, swiped: Set<string>): Promis
     }));
 
   const brandCards: SwipeCard[] = brands
-    .filter((b) => b.user.id !== userId && !swiped.has(`BRAND:${b.user.id}`))
+    .filter((b) => b.user.id !== userId && !swiped.has(`BRAND:${b.user.id}`) && !blocked.has(b.user.id))
     .map((b) => ({
       id: b.user.id,
       targetType: 'BRAND' as const,

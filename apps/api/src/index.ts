@@ -14,6 +14,10 @@ import photographerRoutes from './routes/photographers';
 import adminRoutes from './routes/admin';
 import swipeRoutes from './routes/swipe';
 import verificationRoutes from './routes/verification';
+import reviewRoutes from './routes/reviews';
+import savedRoutes from './routes/saved';
+import reportRoutes from './routes/reports';
+import blockRoutes from './routes/blocks';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -36,6 +40,10 @@ app.use('/api/photographers', photographerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/swipe', swipeRoutes);
 app.use('/api/verification', verificationRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/saved', savedRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/blocks', blockRoutes);
 
 // Global error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

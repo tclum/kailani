@@ -6,6 +6,8 @@ import {
   findOrCreateThread,
   getMessages,
   createMessage,
+  getUnreadCount,
+  markThreadRead,
 } from '../services/message.service';
 import { getIO } from '../lib/socket';
 
@@ -14,8 +16,21 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/', async (req: AuthRequest, res) => {
-  const threads = await getThreadsForUser(req.userId!);
-  res.json(threads);
+  try {
+    const threads = await getThreadsForUser(req.userId!);
+    res.json(threads);
+  } catch {
+    res.status(500).json({ error: 'Failed to load threads' });
+  }
+});
+
+router.get('/unread-count', async (req: AuthRequest, res) => {
+  try {
+    const count = await getUnreadCount(req.userId!);
+    res.json({ count });
+  } catch {
+    res.status(500).json({ error: 'Failed to get unread count' });
+  }
 });
 
 router.post('/', validate(createThreadSchema), async (req: AuthRequest, res) => {
@@ -47,15 +62,23 @@ router.get('/:id/messages', async (req: AuthRequest, res) => {
 router.post('/:id/messages', validate(sendMessageSchema), async (req: AuthRequest, res) => {
   try {
     const message = await createMessage(req.params.id, req.userId!, req.body.body);
-    // Emit via socket to thread members
     try {
-      getIO().to(`thread:${req.params.id}`).emit('new_message', message);
+      getIO().to(`thread:${req.params.id}`).emit('new-message', message);
     } catch {
-      // socket not initialized — ok in tests
+      // socket not initialized — ok in dev/tests
     }
     res.status(201).json(message);
-  } catch (err: any) {
+  } catch {
     res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+router.post('/:id/read', async (req: AuthRequest, res) => {
+  try {
+    await markThreadRead(req.params.id, req.userId!);
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Failed to mark read' });
   }
 });
 

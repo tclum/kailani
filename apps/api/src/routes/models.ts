@@ -3,17 +3,30 @@ import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { uploadSingle } from '../middleware/upload';
 import { validate, updateModelProfileSchema } from '../lib/validate';
 import { listModels, getModel, getMyModel, updateMyModel, addPortfolioImage, removePortfolioImage } from '../services/model.service';
+import { prisma } from '../lib/prisma';
 
 const router = Router();
 
-router.get('/', async (req, res) => {
+router.get('/', async (req: AuthRequest, res) => {
   const { location, tags, page } = req.query;
   const tagArr = tags ? String(tags).split(',') : undefined;
+
+  // Exclude blocked users if authenticated
+  let excludeUserIds: string[] | undefined;
+  if (req.userId) {
+    const [given, received] = await Promise.all([
+      prisma.block.findMany({ where: { blockerId: req.userId }, select: { blockedId: true } }),
+      prisma.block.findMany({ where: { blockedId: req.userId }, select: { blockerId: true } }),
+    ]);
+    excludeUserIds = [...given.map((b) => b.blockedId), ...received.map((b) => b.blockerId)];
+  }
+
   const result = await listModels({
     location: location ? String(location) : undefined,
     tags: tagArr,
     page: page ? Number(page) : 1,
     approvedOnly: true,
+    excludeUserIds,
   });
   res.json(result);
 });

@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { BrandProfile } from '@/components/brand/BrandProfile';
+import { ReviewsSection } from '@/components/shared/ReviewsSection';
+import { ProfileActions } from '@/components/shared/ProfileActions';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import type { BrandProfile as BrandProfileType } from '@kailani/types';
@@ -47,18 +50,22 @@ export default function PublicBrandProfilePage() {
   if (!profile) return <p className="text-muted-foreground">Loading…</p>;
 
   const isOwnProfile = me?.userId === profile.userId;
+  const displayName = profile.brandName;
 
   return (
     <div className="max-w-3xl space-y-6">
       {me && !isOwnProfile && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <Button onClick={handleMessage} disabled={messaging} className="flex items-center gap-2">
             <MessageSquare size={15} />
             {messaging ? 'Opening…' : 'Message'}
           </Button>
+          <ProfileActions targetUserId={profile.userId} targetName={displayName} />
         </div>
       )}
       <BrandProfile profile={profile} />
+      <Separator />
+      <ReviewsSection revieweeUserId={profile.userId} />
     </div>
   );
 }

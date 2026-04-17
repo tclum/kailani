@@ -16,13 +16,17 @@ import { prisma } from '../lib/prisma';
 
 const router = Router();
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many attempts, please try again in 15 minutes' },
-});
+const rateLimitEnabled = process.env.RATE_LIMIT_ENABLED !== 'false';
+
+const authLimiter = rateLimitEnabled
+  ? rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 10,
+      standardHeaders: true,
+      legacyHeaders: false,
+      message: { error: 'Too many attempts, please try again in 15 minutes' },
+    })
+  : (_req: any, _res: any, next: any) => next();
 
 router.post('/register', authLimiter, validate(registerSchema), async (req, res) => {
   try {

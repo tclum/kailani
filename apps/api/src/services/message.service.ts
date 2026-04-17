@@ -10,7 +10,7 @@ const userSelect = {
 } as const;
 
 export async function getThreadsForUser(userId: string) {
-  return prisma.thread.findMany({
+  const threads = await prisma.thread.findMany({
     where: { members: { some: { userId } } },
     include: {
       members: {
@@ -21,12 +21,66 @@ export async function getThreadsForUser(userId: string) {
         take: 1,
       },
     },
-    orderBy: { createdAt: 'desc' },
+  });
+
+  // Get lastReadAt for each thread for this user
+  const memberRows = await prisma.threadMember.findMany({
+    where: { userId },
+    select: { threadId: true, lastReadAt: true },
+  });
+  const lastReadMap = new Map(memberRows.map((m) => [m.threadId, m.lastReadAt]));
+
+  // Count unread messages per thread
+  const threadsWithMeta = await Promise.all(
+    threads.map(async (t) => {
+      const lastRead = lastReadMap.get(t.id) ?? null;
+      const unreadCount = await prisma.message.count({
+        where: {
+          threadId: t.id,
+          senderId: { not: userId },
+          ...(lastRead ? { createdAt: { gt: lastRead } } : {}),
+        },
+      });
+      return { ...t, unreadCount };
+    }),
+  );
+
+  // Sort by most recent message (fall back to thread createdAt)
+  return threadsWithMeta.sort((a, b) => {
+    const aTime = a.messages[0]?.createdAt ?? a.createdAt;
+    const bTime = b.messages[0]?.createdAt ?? b.createdAt;
+    return new Date(bTime).getTime() - new Date(aTime).getTime();
+  });
+}
+
+export async function getUnreadCount(userId: string): Promise<number> {
+  const memberRows = await prisma.threadMember.findMany({
+    where: { userId },
+    select: { threadId: true, lastReadAt: true },
+  });
+
+  let total = 0;
+  for (const row of memberRows) {
+    const count = await prisma.message.count({
+      where: {
+        threadId: row.threadId,
+        senderId: { not: userId },
+        ...(row.lastReadAt ? { createdAt: { gt: row.lastReadAt } } : {}),
+      },
+    });
+    total += count;
+  }
+  return total;
+}
+
+export async function markThreadRead(threadId: string, userId: string): Promise<void> {
+  await prisma.threadMember.updateMany({
+    where: { threadId, userId },
+    data: { lastReadAt: new Date() },
   });
 }
 
 export async function findOrCreateThread(userId: string, recipientId: string) {
-  // Validate recipient exists
   const recipient = await prisma.user.findUnique({ where: { id: recipientId } });
   if (!recipient) throw new Error('RECIPIENT_NOT_FOUND');
 

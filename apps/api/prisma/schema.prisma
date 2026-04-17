@@ -59,6 +59,13 @@ model User {
   matchesAsUser1      Match[]               @relation("MatchesAsUser1")
   matchesAsUser2      Match[]               @relation("MatchesAsUser2")
   verificationRequest VerificationRequest?
+  reviewsGiven        Review[]              @relation("ReviewsGiven")
+  reviewsReceived     Review[]              @relation("ReviewsReceived")
+  savedProfiles       SavedProfile[]        @relation("ProfilesSaved")
+  reportsMade         Report[]              @relation("ReportsMade")
+  reportsReceived     Report[]              @relation("ReportsReceived")
+  blocksMade          Block[]               @relation("BlocksMade")
+  blocksReceived      Block[]               @relation("BlocksReceived")
 }
 
 model ModelProfile {
@@ -136,6 +143,7 @@ model Campaign {
   tags         String[]
   status       CampaignStatus @default(DRAFT)
   applications Application[]
+  reviews      Review[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 }
@@ -162,10 +170,11 @@ model Thread {
 }
 
 model ThreadMember {
-  threadId String
-  userId   String
-  thread   Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  threadId   String
+  userId     String
+  lastReadAt DateTime?
+  thread     Thread    @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([threadId, userId])
 }
@@ -214,4 +223,53 @@ model Match {
   user2     User     @relation("MatchesAsUser2", fields: [user2Id], references: [id])
 
   @@unique([user1Id, user2Id])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  reviewerId String
+  revieweeId String
+  campaignId String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  reviewer   User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
+  reviewee   User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+
+  @@unique([reviewerId, revieweeId, campaignId])
+}
+
+model SavedProfile {
+  id        String   @id @default(cuid())
+  savedById String
+  savedId   String
+  boardName String   @default("Saved")
+  createdAt DateTime @default(now())
+  savedBy   User     @relation("ProfilesSaved", fields: [savedById], references: [id])
+
+  @@unique([savedById, savedId, boardName])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String
+  reportedId String
+  reason     String
+  details    String?
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  reporter   User     @relation("ReportsMade", fields: [reporterId], references: [id])
+  reported   User     @relation("ReportsReceived", fields: [reportedId], references: [id])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  blocker   User     @relation("BlocksMade", fields: [blockerId], references: [id])
+  blocked   User     @relation("BlocksReceived", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
 }

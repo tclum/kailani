@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { ModelProfile } from '@/components/model/ModelProfile';
+import { ReviewsSection } from '@/components/shared/ReviewsSection';
+import { ProfileActions } from '@/components/shared/ProfileActions';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import type { ModelProfile as ModelProfileType } from '@kailani/types';
@@ -51,14 +54,17 @@ export default function PublicModelProfilePage() {
   return (
     <div className="max-w-3xl space-y-6">
       {me && !isOwnProfile && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <Button onClick={handleMessage} disabled={messaging} className="flex items-center gap-2">
             <MessageSquare size={15} />
             {messaging ? 'Opening…' : 'Message'}
           </Button>
+          <ProfileActions targetUserId={profile.userId} targetName={profile.displayName} />
         </div>
       )}
       <ModelProfile profile={profile} />
+      <Separator />
+      <ReviewsSection revieweeUserId={profile.userId} />
     </div>
   );
 }

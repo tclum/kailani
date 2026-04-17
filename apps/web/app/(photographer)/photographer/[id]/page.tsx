@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { ReviewsSection } from '@/components/shared/ReviewsSection';
+import { ProfileActions } from '@/components/shared/ProfileActions';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import type { PhotographerProfile } from '@kailani/types';
@@ -54,11 +56,12 @@ export default function PublicPhotographerProfilePage() {
   return (
     <div className="max-w-3xl space-y-6">
       {me && !isOwnProfile && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
           <Button onClick={handleMessage} disabled={messaging} className="flex items-center gap-2">
             <MessageSquare size={15} />
             {messaging ? 'Opening…' : 'Message'}
           </Button>
+          <ProfileActions targetUserId={profile.userId} targetName={profile.displayName} />
         </div>
       )}
 
@@ -130,6 +133,9 @@ export default function PublicPhotographerProfilePage() {
           </div>
         </div>
       )}
+
+      <Separator />
+      <ReviewsSection revieweeUserId={profile.userId} />
     </div>
   );
 }

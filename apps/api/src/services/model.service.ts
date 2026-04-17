@@ -6,14 +6,19 @@ export async function listModels(opts: {
   page?: number;
   limit?: number;
   approvedOnly?: boolean;
+  excludeUserIds?: string[];
 }) {
-  const { location, tags, page = 1, limit = 20, approvedOnly = false } = opts;
+  const { location, tags, page = 1, limit = 20, approvedOnly = false, excludeUserIds } = opts;
   const skip = (page - 1) * limit;
 
   const where: any = {};
   if (location) where.location = { contains: location, mode: 'insensitive' };
   if (tags && tags.length > 0) where.tags = { hasSome: tags };
-  if (approvedOnly) where.user = { approved: true };
+  if (approvedOnly || (excludeUserIds && excludeUserIds.length > 0)) {
+    where.user = {};
+    if (approvedOnly) where.user.approved = true;
+    if (excludeUserIds && excludeUserIds.length > 0) where.user.id = { notIn: excludeUserIds };
+  }
 
   const [profiles, total] = await prisma.$transaction([
     prisma.modelProfile.findMany({

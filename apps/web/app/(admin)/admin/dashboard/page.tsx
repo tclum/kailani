@@ -52,6 +52,7 @@ export default function AdminDashboard() {
       <div className="flex gap-3 flex-wrap">
         <Button asChild><Link href="/admin/users">Manage Users</Link></Button>
         <Button variant="outline" asChild><Link href="/admin/approvals">Approvals</Link></Button>
+        <Button variant="outline" asChild><Link href="/admin/reports">Reports</Link></Button>
         <Button variant="outline" asChild><Link href="/admin/analytics">Analytics</Link></Button>
       </div>
     </div>
