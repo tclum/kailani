@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { getSwipeQueue, recordLike, recordPass, getMatches } from '../services/swipe.service';
+import { prisma } from '../lib/prisma';
 
 const router = Router();
 router.use(requireAuth);
@@ -31,6 +32,16 @@ router.post('/like', async (req: AuthRequest, res) => {
   }
   try {
     const result = await recordLike(req.userId!, req.userRole!, parsed.data.targetId, parsed.data.targetType);
+
+    // Auto-save to 'Liked' board when a brand likes a model or photographer
+    if (req.userRole === 'BRAND' && (parsed.data.targetType === 'MODEL' || parsed.data.targetType === 'PHOTOGRAPHER')) {
+      prisma.savedProfile.upsert({
+        where: { savedById_savedId_boardName: { savedById: req.userId!, savedId: parsed.data.targetId, boardName: 'Liked' } },
+        create: { savedById: req.userId!, savedId: parsed.data.targetId, boardName: 'Liked' },
+        update: {},
+      }).catch(() => {});
+    }
+
     res.json(result);
   } catch (err) {
     console.error('[swipe/like]', err);

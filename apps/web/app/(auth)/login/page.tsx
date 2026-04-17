@@ -25,6 +25,7 @@ export default function LoginPage() {
       setTokens(data.accessToken, data.refreshToken);
       if (data.user.role === 'MODEL') router.push('/model/dashboard');
       else if (data.user.role === 'BRAND') router.push('/brand/dashboard');
+      else if (data.user.role === 'PHOTOGRAPHER') router.push('/photographer/dashboard');
       else if (data.user.role === 'ADMIN') router.push('/admin/dashboard');
     } catch (err: any) {
       setError(err?.error ?? 'Login failed');

@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { ModelProfile } from '@/components/model/ModelProfile';
 import { ReviewsSection } from '@/components/shared/ReviewsSection';
 import { ProfileActions } from '@/components/shared/ProfileActions';
+import { ProfileSaveButton } from '@/components/shared/ProfileSaveButton';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import type { ModelProfile as ModelProfileType } from '@kailani/types';
@@ -55,6 +56,7 @@ export default function PublicModelProfilePage() {
     <div className="max-w-3xl space-y-6">
       {me && !isOwnProfile && (
         <div className="flex justify-end gap-2">
+          {me.role === 'BRAND' && <ProfileSaveButton targetUserId={profile.userId} />}
           <Button onClick={handleMessage} disabled={messaging} className="flex items-center gap-2">
             <MessageSquare size={15} />
             {messaging ? 'Opening…' : 'Message'}
