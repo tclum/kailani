@@ -142,6 +142,7 @@ model Campaign {
   endDate      DateTime?
   tags         String[]
   status       CampaignStatus @default(DRAFT)
+  flagged      Boolean        @default(false)
   applications Application[]
   reviews      Review[]
   createdAt    DateTime       @default(now())

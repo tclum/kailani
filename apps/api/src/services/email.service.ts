@@ -138,6 +138,27 @@ export async function sendVerificationRejectedEmail(to: string, name: string, re
   });
 }
 
+export async function sendWarningEmail(to: string, name: string, reason: string): Promise<void> {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: 'Account warning from Kailani',
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <h2 style="color:#f59e0b">Account Warning</h2>
+        <p>Hi ${name},</p>
+        <p>You have received a warning from the Kailani moderation team.</p>
+        <p><strong>Reason:</strong> ${reason}</p>
+        <p>Please review our community guidelines. Repeated violations may result in account suspension.</p>
+        <a href="${FRONTEND}"
+           style="display:inline-block;padding:12px 24px;background:#000;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">
+          Go to Kailani
+        </a>
+      </div>
+    `,
+  });
+}
+
 export async function sendPasswordResetEmail(to: string, token: string): Promise<void> {
   const url = `${FRONTEND}/reset-password?token=${token}`;
   await resend.emails.send({
