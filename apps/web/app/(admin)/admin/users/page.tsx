@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -89,7 +89,7 @@ function WarnModal({ user, onConfirm, onCancel }: {
 
 const ROLES = ['ALL', 'MODEL', 'BRAND', 'PHOTOGRAPHER', 'ADMIN'];
 
-export default function AdminUsersPage() {
+function AdminUsersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -402,5 +402,13 @@ export default function AdminUsersPage() {
         )}
       </div>
     </>
+  );
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-24"><div className="w-8 h-8 rounded-full border-4 border-pink-300 border-t-pink-600 animate-spin" /></div>}>
+      <AdminUsersContent />
+    </Suspense>
   );
 }
