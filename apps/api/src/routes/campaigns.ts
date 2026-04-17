@@ -15,23 +15,43 @@ import {
   deleteCampaign,
   applyToCampaign,
   listApplications,
+  getMyApplications,
   updateApplicationStatus,
 } from '../services/campaign.service';
+import { sendApplicationAcceptedEmail, sendApplicationRejectedEmail } from '../services/email.service';
 import { prisma } from '../lib/prisma';
 
 const router = Router();
 
+// ─── Public / discovery ───────────────────────────────────────────────────────
 
 router.get('/', async (req, res) => {
-  const { status, tags, page } = req.query;
+  const { status, tags, location, page, limit } = req.query;
   const tagArr = tags ? String(tags).split(',') : undefined;
   const result = await listCampaigns({
     status: status as any,
     tags: tagArr,
+    location: location ? String(location) : undefined,
     page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 20,
+    withCounts: true,
   });
   res.json(result);
 });
+
+// ─── Model: my applications (must be before /:id) ─────────────────────────────
+
+router.get('/my-applications', requireAuth, requireRole('MODEL'), async (req: AuthRequest, res) => {
+  try {
+    const applications = await getMyApplications(req.userId!);
+    res.json(applications);
+  } catch (err) {
+    console.error('[campaigns/my-applications]', err);
+    res.status(500).json({ error: 'Failed to load applications' });
+  }
+});
+
+// ─── Brand: create campaign ───────────────────────────────────────────────────
 
 router.post('/', requireAuth, requireRole('BRAND'), validate(createCampaignSchema), async (req: AuthRequest, res) => {
   const brand = await prisma.brandProfile.findUnique({ where: { userId: req.userId! } });
@@ -42,6 +62,8 @@ router.post('/', requireAuth, requireRole('BRAND'), validate(createCampaignSchem
   const campaign = await createCampaign(brand.id, req.body);
   res.status(201).json(campaign);
 });
+
+// ─── Campaign CRUD ────────────────────────────────────────────────────────────
 
 router.get('/:id', async (req, res) => {
   const campaign = await getCampaign(req.params.id);
@@ -82,6 +104,8 @@ router.delete('/:id', requireAuth, requireRole('BRAND'), async (req: AuthRequest
   res.status(204).send();
 });
 
+// ─── Applications ─────────────────────────────────────────────────────────────
+
 router.post('/:id/apply', requireAuth, requireRole('MODEL'), validate(applyToCampaignSchema), async (req: AuthRequest, res) => {
   const model = await prisma.modelProfile.findUnique({ where: { userId: req.userId! } });
   if (!model) {
@@ -117,8 +141,34 @@ router.put(
   requireRole('BRAND'),
   validate(updateApplicationStatusSchema),
   async (req: AuthRequest, res) => {
-    const updated = await updateApplicationStatus(req.params.applicationId, req.body.status);
-    res.json(updated);
+    try {
+      const updated = await updateApplicationStatus(req.params.applicationId, req.body.status);
+      res.json(updated);
+
+      // Fire-and-forget emails
+      const modelEmail = updated.model?.user?.email;
+      const modelName = updated.model?.displayName ?? '';
+      const campaignTitle = updated.campaign?.title ?? '';
+      const brandName = updated.campaign?.brand?.brandName ?? '';
+      const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+
+      if (modelEmail) {
+        if (req.body.status === 'ACCEPTED') {
+          sendApplicationAcceptedEmail(
+            modelEmail,
+            modelName,
+            campaignTitle,
+            brandName,
+            `${frontendUrl}/brand/${updated.campaign?.brandId}`,
+          ).catch(() => {});
+        } else if (req.body.status === 'REJECTED') {
+          sendApplicationRejectedEmail(modelEmail, modelName, campaignTitle, brandName).catch(() => {});
+        }
+      }
+    } catch (err) {
+      console.error('[campaigns/applications/status]', err);
+      res.status(500).json({ error: 'Failed to update status' });
+    }
   }
 );
 

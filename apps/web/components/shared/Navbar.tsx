@@ -2,10 +2,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, Zap, ShieldCheck } from 'lucide-react';
+import { MessageSquare, Zap, ShieldCheck, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearTokens, getCurrentUser } from '@/lib/auth';
 import { apiFetch } from '@/lib/api';
+
 
 export function Navbar() {
   const router = useRouter();
@@ -78,6 +79,22 @@ export function Navbar() {
               {user.role === 'BRAND' && (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/brand/profile">Brand Profile</Link>
+                </Button>
+              )}
+              {user.role === 'MODEL' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/model/campaigns" className="flex items-center gap-1.5">
+                    <Briefcase size={15} />
+                    Campaigns
+                  </Link>
+                </Button>
+              )}
+              {user.role === 'BRAND' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/brand/campaigns" className="flex items-center gap-1.5">
+                    <Briefcase size={15} />
+                    Campaigns
+                  </Link>
                 </Button>
               )}
               {discoverHref && (

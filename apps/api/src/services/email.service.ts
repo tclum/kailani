@@ -26,6 +26,56 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
   });
 }
 
+export async function sendApplicationAcceptedEmail(
+  to: string,
+  modelName: string,
+  campaignTitle: string,
+  brandName: string,
+  brandProfileUrl: string,
+): Promise<void> {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `🎉 You've been accepted — ${campaignTitle}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <h2 style="color:#ec4899">Congratulations, ${modelName}! 🎉</h2>
+        <p><strong>${brandName}</strong> has accepted your application for <strong>${campaignTitle}</strong>.</p>
+        <p>Head to your Kailani inbox to connect with the brand and get started.</p>
+        <a href="${brandProfileUrl}"
+           style="display:inline-block;padding:12px 24px;background:#ec4899;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">
+          View Brand Profile
+        </a>
+      </div>
+    `,
+  });
+}
+
+export async function sendApplicationRejectedEmail(
+  to: string,
+  modelName: string,
+  campaignTitle: string,
+  brandName: string,
+): Promise<void> {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `Update on your application — ${campaignTitle}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <h2>Application update</h2>
+        <p>Hi ${modelName},</p>
+        <p>Thank you for applying to <strong>${campaignTitle}</strong> by ${brandName}.</p>
+        <p>After careful consideration, they've decided to move forward with other candidates for this campaign. This doesn't reflect on your talent — there are plenty of other great opportunities on Kailani.</p>
+        <a href="${FRONTEND}"
+           style="display:inline-block;padding:12px 24px;background:#000;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">
+          Browse More Campaigns
+        </a>
+      </div>
+    `,
+  });
+}
+
 export async function sendAdminVerificationAlert(userName: string, userId: string): Promise<void> {
   const adminEmail = process.env.ADMIN_EMAIL ?? process.env.EMAIL_FROM ?? 'admin@kailani.com';
   const url = `${FRONTEND}/admin/approvals`;

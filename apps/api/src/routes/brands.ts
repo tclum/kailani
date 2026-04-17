@@ -3,6 +3,7 @@ import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { uploadSingle } from '../middleware/upload';
 import { validate, updateBrandSchema } from '../lib/validate';
 import { prisma } from '../lib/prisma';
+import { listCampaigns } from '../services/campaign.service';
 
 const router = Router();
 
@@ -26,6 +27,13 @@ router.get('/:id', async (req, res) => {
     return;
   }
   res.json(brand);
+});
+
+router.get('/me/campaigns', requireAuth, requireRole('BRAND'), async (req: AuthRequest, res) => {
+  const brand = await prisma.brandProfile.findUnique({ where: { userId: req.userId! } });
+  if (!brand) { res.status(404).json({ error: 'Brand profile not found' }); return; }
+  const result = await listCampaigns({ brandId: brand.id, withCounts: true, limit: 100 });
+  res.json(result);
 });
 
 router.put('/me', requireAuth, requireRole('BRAND'), validate(updateBrandSchema), async (req: AuthRequest, res) => {
