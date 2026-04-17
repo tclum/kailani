@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { BrandProfile } from '@/components/brand/BrandProfile';
 import { ReviewsSection } from '@/components/shared/ReviewsSection';
+import { StructuredReviewsSection } from '@/components/shared/StructuredReviewsSection';
 import { ProfileActions } from '@/components/shared/ProfileActions';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
@@ -64,6 +65,8 @@ export default function PublicBrandProfilePage() {
         </div>
       )}
       <BrandProfile profile={profile} />
+      <Separator />
+      <StructuredReviewsSection revieweeUserId={profile.userId} revieweeName={profile.brandName} />
       <Separator />
       <ReviewsSection revieweeUserId={profile.userId} />
     </div>

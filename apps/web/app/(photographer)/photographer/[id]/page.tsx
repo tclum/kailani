@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ReviewsSection } from '@/components/shared/ReviewsSection';
+import { StructuredReviewsSection } from '@/components/shared/StructuredReviewsSection';
 import { ProfileActions } from '@/components/shared/ProfileActions';
 import { ProfileSaveButton } from '@/components/shared/ProfileSaveButton';
 import { apiFetch } from '@/lib/api';
@@ -136,6 +137,8 @@ export default function PublicPhotographerProfilePage() {
         </div>
       )}
 
+      <Separator />
+      <StructuredReviewsSection revieweeUserId={profile.userId} revieweeName={profile.displayName} />
       <Separator />
       <ReviewsSection revieweeUserId={profile.userId} />
     </div>

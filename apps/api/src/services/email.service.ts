@@ -159,6 +159,46 @@ export async function sendWarningEmail(to: string, name: string, reason: string)
   });
 }
 
+export async function sendNewReviewEmail(to: string, revieweeName: string, reviewerName: string, campaignTitle: string, deadlineIso: string): Promise<void> {
+  const deadline = new Date(deadlineIso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `${reviewerName} left you a review — respond within 48 hours`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <h2 style="color:#ec4899">You have a new review</h2>
+        <p>Hi ${revieweeName},</p>
+        <p><strong>${reviewerName}</strong> left you a structured review for the campaign <strong>${campaignTitle}</strong>.</p>
+        <p>You have until <strong>${deadline}</strong> to add your perspective before it goes public.</p>
+        <a href="${FRONTEND}/community"
+           style="display:inline-block;padding:12px 24px;background:#ec4899;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">
+          View &amp; Respond
+        </a>
+      </div>
+    `,
+  });
+}
+
+export async function sendCommunityFlaggedEmail(adminEmail: string, flaggedUserName: string, userId: string): Promise<void> {
+  await resend.emails.send({
+    from: FROM,
+    to: adminEmail,
+    subject: `Community flagged: ${flaggedUserName} has 3+ similar reviews`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <h2 style="color:#ef4444">Community Flag Alert</h2>
+        <p><strong>${flaggedUserName}</strong> has received 3 or more reviews mentioning similar concerns.</p>
+        <p>Please review their profile and take appropriate action.</p>
+        <a href="${FRONTEND}/admin/users"
+           style="display:inline-block;padding:12px 24px;background:#000;color:#fff;text-decoration:none;border-radius:6px;font-weight:600">
+          Review in Admin Panel
+        </a>
+      </div>
+    `,
+  });
+}
+
 export async function sendPasswordResetEmail(to: string, token: string): Promise<void> {
   const url = `${FRONTEND}/reset-password?token=${token}`;
   await resend.emails.send({

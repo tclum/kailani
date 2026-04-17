@@ -395,4 +395,70 @@ router.get('/activity', async (_req, res) => {
   res.json({ activity: activity.slice(0, 12) });
 });
 
+// ─── Community flagged users ──────────────────────────────────────────────────
+
+const flaggedUserSelect = {
+  id: true, email: true, role: true, communityFlagged: true, createdAt: true,
+  modelProfile: { select: { displayName: true, profileImage: true } },
+  brandProfile: { select: { brandName: true, profileImage: true } },
+  photographerProfile: { select: { displayName: true, profileImage: true } },
+} as const;
+
+router.get('/flagged-users', async (_req, res) => {
+  const users = await prisma.user.findMany({
+    where: { communityFlagged: true },
+    orderBy: { updatedAt: 'desc' },
+    select: flaggedUserSelect,
+  });
+
+  // Include reviews for each flagged user
+  const enriched = await Promise.all(
+    users.map(async (u) => {
+      const reviews = await prisma.structuredReview.findMany({
+        where: { revieweeId: u.id, isPublic: true },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        include: {
+          reviewer: {
+            select: {
+              modelProfile: { select: { displayName: true } },
+              brandProfile: { select: { brandName: true } },
+              photographerProfile: { select: { displayName: true } },
+            },
+          },
+          campaign: { select: { title: true } },
+        },
+      });
+      return { ...u, recentReviews: reviews };
+    })
+  );
+
+  res.json({ users: enriched });
+});
+
+router.put('/users/:id/clear-flag', async (req, res) => {
+  const user = await prisma.user.update({
+    where: { id: req.params.id },
+    data: { communityFlagged: false },
+    select: { id: true, communityFlagged: true },
+  });
+  res.json(user);
+});
+
+// ─── Publish reviews (cron trigger) ──────────────────────────────────────────
+router.post('/publish-reviews', async (_req, res) => {
+  const now = new Date();
+  const [reviews, posts] = await prisma.$transaction([
+    prisma.structuredReview.updateMany({
+      where: { responseDeadline: { lt: now }, isPublic: false },
+      data: { isPublic: true },
+    }),
+    prisma.workingTogetherPost.updateMany({
+      where: { responseDeadline: { lt: now }, isPublic: false },
+      data: { isPublic: true },
+    }),
+  ]);
+  res.json({ publishedReviews: reviews.count, publishedPosts: posts.count });
+});
+
 export default router;

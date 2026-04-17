@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search, ChevronLeft, ChevronRight, Users, Download, ShieldCheck, ShieldOff, Trash2, AlertTriangle } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Users, Download, ShieldCheck, ShieldOff, Trash2, AlertTriangle, Flag, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { apiFetch } from '@/lib/api';
 
@@ -89,9 +89,132 @@ function WarnModal({ user, onConfirm, onCancel }: {
 
 const ROLES = ['ALL', 'MODEL', 'BRAND', 'PHOTOGRAPHER', 'ADMIN'];
 
+// ─── Flagged users tab ─────────────────────────────────────────────────────────
+interface FlaggedUser {
+  id: string;
+  email: string;
+  role: string;
+  modelProfile: { displayName: string; profileImage?: string | null } | null;
+  brandProfile: { brandName: string; profileImage?: string | null } | null;
+  photographerProfile: { displayName: string; profileImage?: string | null } | null;
+  recentReviews: Array<{
+    overallRating: number;
+    comment?: string | null;
+    createdAt: string;
+    reviewer: {
+      modelProfile: { displayName: string } | null;
+      brandProfile: { brandName: string } | null;
+      photographerProfile: { displayName: string } | null;
+    };
+    campaign: { title: string };
+  }>;
+}
+
+function FlaggedUsersTab() {
+  const [users, setUsers] = useState<FlaggedUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiFetch<{ users: FlaggedUser[] }>('/api/admin/flagged-users')
+      .then((r) => setUsers(r.users))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function clearFlag(id: string) {
+    await apiFetch(`/api/admin/users/${id}/clear-flag`, { method: 'PUT' });
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-24">
+      <div className="w-8 h-8 rounded-full border-4 border-pink-300 border-t-pink-600 animate-spin" />
+    </div>
+  );
+
+  if (users.length === 0) return (
+    <div className="flex flex-col items-center justify-center py-24 gap-2 text-center">
+      <Flag size={32} className="text-muted-foreground/30" />
+      <p className="text-muted-foreground">No community-flagged users</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      {users.map((u) => {
+        const name = u.modelProfile?.displayName ?? u.brandProfile?.brandName ?? u.photographerProfile?.displayName ?? u.email;
+        const img = u.modelProfile?.profileImage ?? u.brandProfile?.profileImage ?? u.photographerProfile?.profileImage;
+        const initials = name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+        const isExpanded = expandedId === u.id;
+        return (
+          <div key={u.id} className="rounded-2xl border border-red-200 bg-red-50/20 overflow-hidden">
+            <div className="p-5 flex items-start gap-4">
+              <div
+                className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-sm font-bold text-white"
+                style={{ background: img ? undefined : 'linear-gradient(135deg,#ec4899,#be185d)' }}
+              >
+                {img ? <Image src={img} alt={name} width={44} height={44} className="object-cover w-full h-full" /> : initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold">{name}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold flex items-center gap-1">
+                    <AlertTriangle size={10} /> Community Flagged
+                  </span>
+                  <Badge variant="outline" className="text-xs capitalize">{u.role.toLowerCase()}</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{u.email}</p>
+                <p className="text-xs text-muted-foreground mt-1">{u.recentReviews.length} review{u.recentReviews.length !== 1 ? 's' : ''} on file</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : u.id)}
+                  className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted transition-colors"
+                >
+                  {isExpanded ? 'Hide' : 'View Reviews'}
+                </button>
+                <button
+                  onClick={() => clearFlag(u.id)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-50 border border-green-200 text-green-700 text-xs font-semibold hover:bg-green-100 transition-colors"
+                >
+                  <X size={10} /> Clear Flag
+                </button>
+              </div>
+            </div>
+            {isExpanded && u.recentReviews.length > 0 && (
+              <div className="px-5 pb-5 space-y-3">
+                {u.recentReviews.map((r, i) => {
+                  const reviewerName = r.reviewer.modelProfile?.displayName ?? r.reviewer.brandProfile?.brandName ?? r.reviewer.photographerProfile?.displayName ?? 'User';
+                  return (
+                    <div key={i} className="rounded-xl border bg-card p-4 space-y-1">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span className="font-medium">{reviewerName} · {r.campaign.title}</span>
+                        <span>{new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[1,2,3,4,5].map((s) => (
+                          <span key={s} className={`text-xs ${s <= Math.round(r.overallRating) ? 'text-amber-400' : 'text-muted-foreground/30'}`}>★</span>
+                        ))}
+                        <span className="text-xs font-bold text-amber-600 ml-1">{r.overallRating.toFixed(1)}</span>
+                      </div>
+                      {r.comment && <p className="text-sm text-muted-foreground">&ldquo;{r.comment}&rdquo;</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function AdminUsersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<'all' | 'flagged'>('all');
 
   const [data, setData] = useState<PaginatedUsers | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,6 +301,24 @@ function AdminUsersContent() {
       {warnUser && <WarnModal user={warnUser} onConfirm={sendWarn} onCancel={() => setWarnUser(null)} />}
 
       <div className="space-y-6">
+        {/* Tabs */}
+        <div className="flex gap-1 p-1 rounded-xl bg-muted w-fit">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'all' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <Users size={13} /> All Users
+          </button>
+          <button
+            onClick={() => setActiveTab('flagged')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'flagged' ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <Flag size={13} /> Community Flagged
+          </button>
+        </div>
+
+        {activeTab === 'flagged' ? <FlaggedUsersTab /> : (
+        <>
         {/* Header */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
@@ -399,6 +540,8 @@ function AdminUsersContent() {
               </button>
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </>

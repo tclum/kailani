@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ModelProfile } from '@/components/model/ModelProfile';
 import { ReviewsSection } from '@/components/shared/ReviewsSection';
+import { StructuredReviewsSection } from '@/components/shared/StructuredReviewsSection';
 import { ProfileActions } from '@/components/shared/ProfileActions';
 import { ProfileSaveButton } from '@/components/shared/ProfileSaveButton';
 import { apiFetch } from '@/lib/api';
@@ -65,6 +66,8 @@ export default function PublicModelProfilePage() {
         </div>
       )}
       <ModelProfile profile={profile} />
+      <Separator />
+      <StructuredReviewsSection revieweeUserId={profile.userId} revieweeName={profile.displayName} />
       <Separator />
       <ReviewsSection revieweeUserId={profile.userId} />
     </div>

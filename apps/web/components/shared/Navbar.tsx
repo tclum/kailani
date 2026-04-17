@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag } from 'lucide-react';
+import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearTokens, getCurrentUser } from '@/lib/auth';
 import { apiFetch } from '@/lib/api';
@@ -175,6 +175,14 @@ export function Navbar() {
                   <Link href="/admin/reports" className="flex items-center gap-1.5">
                     <Flag size={15} />
                     Reports
+                  </Link>
+                </Button>
+              )}
+              {user.role !== 'ADMIN' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/community" className="flex items-center gap-1.5">
+                    <Users size={15} />
+                    Community
                   </Link>
                 </Button>
               )}

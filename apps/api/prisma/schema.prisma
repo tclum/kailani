@@ -59,8 +59,12 @@ model User {
   matchesAsUser1      Match[]               @relation("MatchesAsUser1")
   matchesAsUser2      Match[]               @relation("MatchesAsUser2")
   verificationRequest VerificationRequest?
+  communityFlagged    Boolean               @default(false)
   reviewsGiven        Review[]              @relation("ReviewsGiven")
   reviewsReceived     Review[]              @relation("ReviewsReceived")
+  structuredReviewsGiven     StructuredReview[]    @relation("StructuredReviewsGiven")
+  structuredReviewsReceived  StructuredReview[]    @relation("StructuredReviewsReceived")
+  workingTogetherPosts       WorkingTogetherPost[] @relation("PostsAuthored")
   savedProfiles       SavedProfile[]        @relation("ProfilesSaved")
   reportsMade         Report[]              @relation("ReportsMade")
   reportsReceived     Report[]              @relation("ReportsReceived")
@@ -145,6 +149,8 @@ model Campaign {
   flagged      Boolean        @default(false)
   applications Application[]
   reviews      Review[]
+  structuredReviews  StructuredReview[]
+  workingTogetherPosts WorkingTogetherPost[] @relation("CampaignPosts")
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 }
@@ -273,4 +279,40 @@ model Block {
   blocked   User     @relation("BlocksReceived", fields: [blockedId], references: [id])
 
   @@unique([blockerId, blockedId])
+}
+
+model StructuredReview {
+  id               String   @id @default(cuid())
+  reviewerId       String
+  revieweeId       String
+  campaignId       String
+  dimensions       Json
+  overallRating    Float
+  comment          String?
+  reviewerResponse String?
+  responseDeadline DateTime
+  isPublic         Boolean  @default(false)
+  flagCount        Int      @default(0)
+  adminFlagged     Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  reviewer         User     @relation("StructuredReviewsGiven", fields: [reviewerId], references: [id])
+  reviewee         User     @relation("StructuredReviewsReceived", fields: [revieweeId], references: [id])
+  campaign         Campaign @relation(fields: [campaignId], references: [id])
+
+  @@unique([reviewerId, revieweeId, campaignId])
+}
+
+model WorkingTogetherPost {
+  id               String   @id @default(cuid())
+  authorId         String
+  campaignId       String
+  content          String
+  isPublic         Boolean  @default(false)
+  responseDeadline DateTime
+  subjectResponse  String?
+  adminFlagged     Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  author           User     @relation("PostsAuthored", fields: [authorId], references: [id])
+  campaign         Campaign @relation("CampaignPosts", fields: [campaignId], references: [id])
 }
