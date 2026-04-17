@@ -2,10 +2,11 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge';
 import type { ModelProfile as ModelProfileType } from '@kailani/types';
 
 interface Props {
-  profile: ModelProfileType;
+  profile: ModelProfileType & { user?: { verified?: boolean } | null };
 }
 
 export function ModelProfile({ profile }: Props) {
@@ -24,7 +25,10 @@ export function ModelProfile({ profile }: Props) {
           )}
         </div>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{profile.displayName}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-3xl font-bold">{profile.displayName}</h1>
+            {profile.user?.verified && <VerifiedBadge size="md" />}
+          </div>
           {profile.location && <p className="text-muted-foreground">{profile.location}</p>}
           {profile.bio && <p className="mt-3 text-sm leading-relaxed">{profile.bio}</p>}
           {profile.tags.length > 0 && (

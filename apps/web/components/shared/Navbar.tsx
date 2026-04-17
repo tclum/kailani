@@ -2,16 +2,24 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, Zap } from 'lucide-react';
+import { MessageSquare, Zap, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearTokens, getCurrentUser } from '@/lib/auth';
+import { apiFetch } from '@/lib/api';
 
 export function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<ReturnType<typeof getCurrentUser>>(null);
+  const [verified, setVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setUser(getCurrentUser());
+    const u = getCurrentUser();
+    setUser(u);
+    if (u && u.role !== 'ADMIN') {
+      apiFetch<{ verified: boolean }>('/api/auth/me')
+        .then((me) => setVerified(me.verified))
+        .catch(() => {});
+    }
   }, []);
 
   function handleLogout() {
@@ -25,7 +33,7 @@ export function Navbar() {
     if (user.role === 'MODEL') return '/model/dashboard';
     if (user.role === 'BRAND') return '/brand/dashboard';
     if (user.role === 'ADMIN') return '/admin/dashboard';
-    if (user.role === 'PHOTOGRAPHER') return '/model/dashboard';
+    if (user.role === 'PHOTOGRAPHER') return '/photographer/dashboard';
     return '/';
   }
 
@@ -45,8 +53,18 @@ export function Navbar() {
     return null;
   }
 
+  function getVerifyHref() {
+    if (!user || user.role === 'ADMIN') return null;
+    if (user.role === 'MODEL') return '/model/verify';
+    if (user.role === 'BRAND') return '/brand/verify';
+    if (user.role === 'PHOTOGRAPHER') return '/photographer/verify';
+    return null;
+  }
+
   const inboxHref = getInboxHref();
   const discoverHref = getDiscoverHref();
+  const verifyHref = getVerifyHref();
+  const showGetVerified = verifyHref && verified === false;
 
   return (
     <nav className="border-b bg-background">
@@ -75,6 +93,17 @@ export function Navbar() {
                   <Link href={inboxHref} className="flex items-center gap-1.5">
                     <MessageSquare size={15} />
                     Inbox
+                  </Link>
+                </Button>
+              )}
+              {showGetVerified && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link
+                    href={verifyHref!}
+                    className="flex items-center gap-1.5 text-pink-500 hover:text-pink-600"
+                  >
+                    <ShieldCheck size={15} />
+                    Get Verified
                   </Link>
                 </Button>
               )}

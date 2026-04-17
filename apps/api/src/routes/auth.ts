@@ -141,7 +141,7 @@ router.post('/reset-password', async (req, res) => {
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.userId! },
-    select: { id: true, email: true, role: true, approved: true, emailVerified: true },
+    select: { id: true, email: true, role: true, approved: true, emailVerified: true, verified: true },
   });
   if (!user) {
     res.status(404).json({ error: 'User not found' });

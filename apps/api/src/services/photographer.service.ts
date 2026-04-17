@@ -40,7 +40,7 @@ export async function listPhotographers(opts: {
 export async function getPhotographer(id: string) {
   return prisma.photographerProfile.findUnique({
     where: { id },
-    include: { user: { select: { id: true, email: true, approved: true } } },
+    include: { user: { select: { id: true, email: true, approved: true, verified: true } } },
   });
 }
 

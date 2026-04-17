@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge';
 import type { BrandProfile as BrandProfileType } from '@kailani/types';
 
 interface Props {
-  profile: BrandProfileType;
+  profile: BrandProfileType & { user?: { verified?: boolean } | null };
 }
 
 export function BrandProfile({ profile }: Props) {
@@ -20,7 +21,10 @@ export function BrandProfile({ profile }: Props) {
           )}
         </div>
         <div>
-          <h1 className="text-3xl font-bold">{profile.brandName}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-3xl font-bold">{profile.brandName}</h1>
+            {profile.user?.verified && <VerifiedBadge size="md" />}
+          </div>
           {profile.industry && <p className="text-muted-foreground">{profile.industry}</p>}
           {profile.location && <p className="text-sm text-muted-foreground">{profile.location}</p>}
           {profile.website && (

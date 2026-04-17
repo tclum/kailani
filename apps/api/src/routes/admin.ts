@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
+import { sendVerificationApprovedEmail, sendVerificationRejectedEmail } from '../services/email.service';
 
 const router = Router();
 
@@ -35,6 +36,84 @@ router.put('/users/:id/approve', async (req, res) => {
 router.delete('/users/:id', async (req, res) => {
   await prisma.user.delete({ where: { id: req.params.id } });
   res.status(204).send();
+});
+
+// ─── Verification queue ───────────────────────────────────────────────────────
+
+const verificationUserSelect = {
+  email: true,
+  role: true,
+  verified: true,
+  modelProfile: { select: { displayName: true, profileImage: true, coverImage: true } },
+  brandProfile: { select: { brandName: true, logoUrl: true, profileImage: true } },
+  photographerProfile: { select: { displayName: true, profileImage: true } },
+} as const;
+
+router.get('/verification-queue', async (req, res) => {
+  const { status } = req.query;
+  const where = status ? { status: status as any } : {};
+  const requests = await prisma.verificationRequest.findMany({
+    where,
+    include: { user: { select: verificationUserSelect } },
+    orderBy: { submittedAt: 'desc' },
+  });
+  res.json({ requests });
+});
+
+router.put('/verification/:id/approve', async (req: AuthRequest, res) => {
+  const request = await prisma.verificationRequest.findUnique({ where: { id: req.params.id } });
+  if (!request) { res.status(404).json({ error: 'Request not found' }); return; }
+
+  await prisma.$transaction([
+    prisma.verificationRequest.update({
+      where: { id: req.params.id },
+      data: { status: 'APPROVED', reviewedAt: new Date(), reviewedBy: req.userId },
+    }),
+    prisma.user.update({
+      where: { id: request.userId },
+      data: { approved: true, verified: true },
+    }),
+  ]);
+
+  // Send approval email fire-and-forget
+  const user = await prisma.user.findUnique({
+    where: { id: request.userId },
+    select: {
+      email: true,
+      modelProfile: { select: { displayName: true } },
+      brandProfile: { select: { brandName: true } },
+      photographerProfile: { select: { displayName: true } },
+    },
+  });
+  const name = user?.modelProfile?.displayName ?? user?.brandProfile?.brandName ?? user?.photographerProfile?.displayName ?? '';
+  if (user) sendVerificationApprovedEmail(user.email, name).catch(() => {});
+
+  res.json({ ok: true });
+});
+
+router.put('/verification/:id/reject', async (req: AuthRequest, res) => {
+  const { adminNote } = req.body as { adminNote?: string };
+  const request = await prisma.verificationRequest.findUnique({ where: { id: req.params.id } });
+  if (!request) { res.status(404).json({ error: 'Request not found' }); return; }
+
+  await prisma.verificationRequest.update({
+    where: { id: req.params.id },
+    data: { status: 'REJECTED', adminNote: adminNote ?? '', reviewedAt: new Date(), reviewedBy: req.userId },
+  });
+
+  const user = await prisma.user.findUnique({
+    where: { id: request.userId },
+    select: {
+      email: true,
+      modelProfile: { select: { displayName: true } },
+      brandProfile: { select: { brandName: true } },
+      photographerProfile: { select: { displayName: true } },
+    },
+  });
+  const name = user?.modelProfile?.displayName ?? user?.brandProfile?.brandName ?? user?.photographerProfile?.displayName ?? '';
+  if (user) sendVerificationRejectedEmail(user.email, name, adminNote ?? 'No reason provided').catch(() => {});
+
+  res.json({ ok: true });
 });
 
 router.get('/stats', async (_req, res) => {

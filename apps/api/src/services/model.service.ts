@@ -27,9 +27,11 @@ export async function listModels(opts: {
         bio: true,
         location: true,
         coverImage: true,
+        profileImage: true,
         tags: true,
         heightCm: true,
         createdAt: true,
+        user: { select: { verified: true } },
       },
     }),
     prisma.modelProfile.count({ where }),
@@ -42,7 +44,7 @@ export async function getModel(id: string) {
   return prisma.modelProfile.findUnique({
     where: { id },
     include: {
-      user: { select: { id: true, email: true, approved: true } },
+      user: { select: { id: true, email: true, approved: true, verified: true } },
     },
   });
 }

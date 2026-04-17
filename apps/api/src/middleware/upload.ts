@@ -18,11 +18,32 @@ const storage = new CloudinaryStorage({
   } as object,
 });
 
+const verificationStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'kailani/verification',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    resource_type: 'image',
+  } as object,
+});
+
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 const multerInstance = multer({
   storage,
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter(_req, file, cb) {
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only jpg, png, and webp are allowed.'));
+    }
+  },
+});
+
+const verificationMulter = multer({
+  storage: verificationStorage,
   limits: { fileSize: MAX_FILE_SIZE },
   fileFilter(_req, file, cb) {
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
@@ -52,6 +73,24 @@ export function uploadSingle(field: string) {
         return;
       }
 
+      next(err as Error);
+    });
+  };
+}
+
+/** Same as uploadSingle but stores in the private verification folder */
+export function uploadVerification(field: string) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    verificationMulter.single(field)(req, res, (err: unknown) => {
+      if (!err) return next();
+      if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+        res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+        return;
+      }
+      if (err instanceof Error) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
       next(err as Error);
     });
   };
