@@ -121,8 +121,8 @@ model PhotographerProfile {
   location        String?
   instagramUrl    String?
   profileImage    String?
-  specialties     String[]
-  portfolioImages String[]
+  specialties     String[]  @default([])
+  portfolioImages String[]  @default([])
   coverImage      String?
   rates           Json?
   availability    Json?

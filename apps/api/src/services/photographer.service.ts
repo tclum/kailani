@@ -55,7 +55,13 @@ export async function upsertMyPhotographer(userId: string, data: Record<string, 
   return prisma.photographerProfile.upsert({
     where: { userId },
     update: data,
-    create: { userId, displayName: (data.displayName as string) ?? '', ...data },
+    create: {
+      userId,
+      displayName: (data.displayName as string) ?? '',
+      specialties: [],
+      portfolioImages: [],
+      ...data,
+    },
   });
 }
 
