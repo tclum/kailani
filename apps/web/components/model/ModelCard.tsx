@@ -27,7 +27,7 @@ export function ModelCard({ id, userId, displayName, bio, location, coverImage, 
 
   return (
     <div className="relative">
-      <Link href={`/model/${id}`}>
+      <Link href={`/model/${userId ?? id}`}>
         <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
           <div className="aspect-[3/4] relative bg-muted">
             {image ? (

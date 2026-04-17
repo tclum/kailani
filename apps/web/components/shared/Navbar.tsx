@@ -133,6 +133,16 @@ export function Navbar() {
                   <Link href="/brand/profile">Brand Profile</Link>
                 </Button>
               )}
+              {user.role === 'PHOTOGRAPHER' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/photographer/profile">Profile</Link>
+                </Button>
+              )}
+              {user.role === 'PHOTOGRAPHER' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/photographer/portfolio">Portfolio</Link>
+                </Button>
+              )}
               {user.role === 'MODEL' && (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/model/campaigns" className="flex items-center gap-1.5">

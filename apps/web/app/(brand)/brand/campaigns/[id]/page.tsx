@@ -73,7 +73,7 @@ function ApplicantCard({
     <div className="rounded-2xl border bg-card overflow-hidden">
       {/* Header row */}
       <div className="p-4 flex items-start gap-3">
-        <Link href={`/model/${m.id}`} className="flex-shrink-0">
+        <Link href={`/model/${m.userId}`} className="flex-shrink-0">
           <div
             className="w-14 h-14 rounded-full overflow-hidden flex items-center justify-center text-xl font-bold text-white"
             style={{ background: avatar ? undefined : 'linear-gradient(135deg,#ec4899,#be185d)' }}
@@ -85,7 +85,7 @@ function ApplicantCard({
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <Link href={`/model/${m.id}`} className="font-bold text-base hover:text-pink-500 transition-colors">{m.displayName}</Link>
+            <Link href={`/model/${m.userId}`} className="font-bold text-base hover:text-pink-500 transition-colors">{m.displayName}</Link>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cfg.color}`}>{cfg.label}</span>
           </div>
           {m.location && <p className="text-xs text-muted-foreground flex items-center gap-0.5 mt-0.5"><MapPin size={11} /> {m.location}</p>}

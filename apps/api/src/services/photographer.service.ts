@@ -23,10 +23,12 @@ export async function listPhotographers(opts: {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
+        userId: true,
         displayName: true,
         bio: true,
         location: true,
         coverImage: true,
+        profileImage: true,
         specialties: true,
         createdAt: true,
       },
@@ -37,9 +39,9 @@ export async function listPhotographers(opts: {
   return { profiles, total, page, limit };
 }
 
-export async function getPhotographer(id: string) {
+export async function getPhotographer(userId: string) {
   return prisma.photographerProfile.findUnique({
-    where: { id },
+    where: { userId },
     include: { user: { select: { id: true, email: true, approved: true, verified: true } } },
   });
 }

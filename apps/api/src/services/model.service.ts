@@ -28,6 +28,7 @@ export async function listModels(opts: {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
+        userId: true,
         displayName: true,
         bio: true,
         location: true,
@@ -45,9 +46,9 @@ export async function listModels(opts: {
   return { profiles, total, page, limit };
 }
 
-export async function getModel(id: string) {
+export async function getModel(userId: string) {
   return prisma.modelProfile.findUnique({
-    where: { id },
+    where: { userId },
     include: {
       user: { select: { id: true, email: true, approved: true, verified: true } },
     },

@@ -19,9 +19,10 @@ function fmt(d?: string | null) {
 
 function CampaignRow({ c }: { c: CampaignWithBrand }) {
   const applicants = c._count?.applications ?? 0;
+  const editable = c.status === 'DRAFT' || c.status === 'OPEN';
   return (
-    <Link href={`/brand/campaigns/${c.id}`}>
-      <div className="flex items-center gap-4 p-4 rounded-2xl border bg-card hover:shadow-md transition-shadow cursor-pointer group">
+    <div className="flex items-center gap-2 rounded-2xl border bg-card hover:shadow-md transition-shadow group">
+      <Link href={`/brand/campaigns/${c.id}`} className="flex-1 min-w-0 flex items-center gap-4 p-4 cursor-pointer">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-sm group-hover:text-pink-500 transition-colors line-clamp-1 mb-1">{c.title}</h3>
           <p className="text-xs text-muted-foreground line-clamp-1">{c.description}</p>
@@ -47,8 +48,17 @@ function CampaignRow({ c }: { c: CampaignWithBrand }) {
           </div>
           <ChevronRight size={16} className="text-muted-foreground group-hover:text-pink-500 transition-colors" />
         </div>
-      </div>
-    </Link>
+      </Link>
+      {editable && (
+        <Link
+          href={`/brand/campaigns/${c.id}/edit`}
+          onClick={(e) => e.stopPropagation()}
+          className="mr-3 flex-shrink-0 h-8 px-3 rounded-lg text-xs font-medium border border-border hover:bg-muted transition-colors flex items-center"
+        >
+          Edit
+        </Link>
+      )}
+    </div>
   );
 }
 
