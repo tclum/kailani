@@ -66,6 +66,8 @@ model User {
   structuredReviewsReceived  StructuredReview[]    @relation("StructuredReviewsReceived")
   workingTogetherPosts       WorkingTogetherPost[] @relation("PostsAuthored")
   savedProfiles       SavedProfile[]        @relation("ProfilesSaved")
+  tutorialsAuthored   Tutorial[]
+  spotlight           Spotlight?
   reportsMade         Report[]              @relation("ReportsMade")
   reportsReceived     Report[]              @relation("ReportsReceived")
   blocksMade          Block[]               @relation("BlocksMade")
@@ -315,4 +317,43 @@ model WorkingTogetherPost {
   createdAt        DateTime @default(now())
   author           User     @relation("PostsAuthored", fields: [authorId], references: [id])
   campaign         Campaign @relation("CampaignPosts", fields: [campaignId], references: [id])
+}
+
+enum TutorialCategory {
+  MODELING
+  BEAUTY
+  PHOTOGRAPHY
+  BUSINESS
+  INDUSTRY_GUIDES
+}
+
+enum TutorialDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+model Tutorial {
+  id           String             @id @default(cuid())
+  title        String
+  description  String
+  category     TutorialCategory
+  difficulty   TutorialDifficulty
+  duration     Int
+  thumbnailUrl String?
+  videoUrl     String?
+  authorId     String?
+  published    Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  author       User?              @relation(fields: [authorId], references: [id])
+}
+
+model Spotlight {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  type      String
+  weekOf    DateTime
+  reason    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

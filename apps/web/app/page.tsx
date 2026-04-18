@@ -21,6 +21,22 @@ interface FeaturedModel {
   user?: { verified?: boolean } | null;
 }
 
+interface SpotlightUser {
+  id: string;
+  role: string;
+  modelProfile?: { displayName: string; profileImage: string | null; location: string | null; tags: string[] } | null;
+  photographerProfile?: { displayName: string; profileImage: string | null; location: string | null; specialties: string[] } | null;
+  brandProfile?: { brandName: string; logoUrl: string | null; location: string | null; industry: string | null } | null;
+}
+
+interface Spotlight {
+  id: string;
+  userId: string;
+  type: string;
+  reason: string;
+  user: SpotlightUser;
+}
+
 interface FeaturedCampaign {
   id: string;
   title: string;
@@ -238,6 +254,75 @@ function CampaignCard({ c }: { c: FeaturedCampaign }) {
   );
 }
 
+// ─── Feature card ─────────────────────────────────────────────────────────────
+
+function FeatureCard({ icon, title, desc, href, badge }: { icon: React.ReactNode; title: string; desc: string; href: string; badge?: string }) {
+  return (
+    <Link href={href} className="group rounded-2xl border border-border bg-card p-6 space-y-3 relative overflow-hidden hover:shadow-md transition-shadow block">
+      {badge && (
+        <div className="absolute top-3 right-3">
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 tracking-wider">{badge.toUpperCase()}</span>
+        </div>
+      )}
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,rgba(236,72,153,0.12),rgba(190,24,93,0.08))', border: '1px solid rgba(236,72,153,0.15)' }}>
+        <span className="text-pink-500">{icon}</span>
+      </div>
+      <h3 className="font-semibold text-sm leading-tight group-hover:text-pink-500 transition-colors">{title}</h3>
+      <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+    </Link>
+  );
+}
+
+// ─── Spotlight card ───────────────────────────────────────────────────────────
+
+function SpotlightCard({ spotlight }: { spotlight: Spotlight }) {
+  const u = spotlight.user;
+  const name = u.modelProfile?.displayName ?? u.photographerProfile?.displayName ?? u.brandProfile?.brandName ?? 'Member';
+  const img = u.modelProfile?.profileImage ?? u.photographerProfile?.profileImage ?? u.brandProfile?.logoUrl ?? null;
+  const location = u.modelProfile?.location ?? u.photographerProfile?.location ?? u.brandProfile?.location ?? null;
+  const tags = u.modelProfile?.tags ?? u.photographerProfile?.specialties ?? (u.brandProfile?.industry ? [u.brandProfile.industry] : []);
+  const href = u.role === 'MODEL' ? `/model/${u.id}` : u.role === 'PHOTOGRAPHER' ? `/photographer/${u.id}` : `/brand/${u.id}`;
+  const initials = name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+
+  return (
+    <Link href={href} className="group flex-shrink-0 w-52 sm:w-56">
+      <div className="rounded-2xl overflow-hidden border border-amber-200 bg-card hover:shadow-lg transition-shadow">
+        <div className="aspect-[3/4] relative bg-muted overflow-hidden">
+          {img ? (
+            <Image src={img} alt={name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
+              style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>
+              {initials}
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+          <div className="absolute top-2 right-2">
+            <div className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center shadow">
+              <Star size={12} className="text-white fill-white" />
+            </div>
+          </div>
+          <div className="absolute bottom-3 left-3 right-3">
+            <p className="text-white font-semibold text-sm truncate">{name}</p>
+            {location && <p className="text-white/70 text-xs truncate flex items-center gap-0.5"><MapPin size={9} /> {location}</p>}
+          </div>
+        </div>
+        <div className="px-3 py-2 space-y-1">
+          <p className="text-[10px] text-amber-600 font-semibold uppercase tracking-wider">{spotlight.type.replace('_', ' ')}</p>
+          <p className="text-xs text-muted-foreground italic line-clamp-2">"{spotlight.reason}"</p>
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-0.5">
+              {tags.slice(0, 2).map((t: string) => (
+                <span key={t} className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">{t}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 // ─── Coming Soon card ─────────────────────────────────────────────────────────
 
 function ComingSoonCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
@@ -307,6 +392,7 @@ export default function HomePage() {
 
   const [models, setModels] = useState<FeaturedModel[]>([]);
   const [campaigns, setCampaigns] = useState<FeaturedCampaign[]>([]);
+  const [spotlights, setSpotlights] = useState<Spotlight[]>([]);
 
   useEffect(() => {
     apiFetch<{ profiles: FeaturedModel[] }>(`/api/models?featured=true&limit=6`)
@@ -315,6 +401,10 @@ export default function HomePage() {
 
     apiFetch<{ campaigns: FeaturedCampaign[] }>(`/api/campaigns?status=OPEN&limit=4`)
       .then((r) => setCampaigns(r.campaigns ?? []))
+      .catch(() => {});
+
+    apiFetch<Spotlight[]>(`/api/spotlights/current`)
+      .then(setSpotlights)
       .catch(() => {});
   }, []);
 
@@ -359,33 +449,54 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* What's Coming */}
-      <section className="py-16 px-4">
+      {/* Spotlights */}
+      {spotlights.length > 0 && (
+        <section className="py-16 px-4">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeader
+              title="This Week's Spotlights"
+              sub="Outstanding members of the Kailani community"
+            />
+            <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+              {spotlights.map((s) => <SpotlightCard key={s.id} spotlight={s} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Platform tools */}
+      <section className="py-16 px-4" style={{ background: 'rgba(244,114,182,0.02)', borderTop: '1px solid rgba(244,114,182,0.08)', borderBottom: '1px solid rgba(244,114,182,0.08)' }}>
         <div className="max-w-7xl mx-auto">
           <SectionHeader
-            title="What's Coming"
-            sub="We're building the most complete fashion platform on the web"
+            title="Platform Resources"
+            sub="Tools and content to help you grow your career"
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <ComingSoonCard
+            <FeatureCard
               icon={<BookOpen size={20} />}
               title="Tutorials"
               desc="Posing tips, makeup tutorials, photography guides, and industry resources from experts."
+              href="/tutorials"
+              badge="12 available"
             />
-            <ComingSoonCard
-              icon={<Rss size={20} />}
-              title="Community Feed"
-              desc="Stories, tips, and behind-the-scenes content shared by verified members of the Kailani community."
-            />
-            <ComingSoonCard
+            <FeatureCard
               icon={<Newspaper size={20} />}
               title="Industry News"
-              desc="Latest trends, casting calls, seasonal highlights, and opportunities in fashion."
+              desc="Latest trends, casting calls, and opportunities in fashion and beauty."
+              href="/news"
+              badge="Live"
+            />
+            <FeatureCard
+              icon={<Rss size={20} />}
+              title="Rate Calculator"
+              desc="Estimate fair market rates for modeling and photography work."
+              href="/tools/rate-calculator"
+              badge="Free tool"
             />
             <ComingSoonCard
-              icon={<Star size={20} />}
-              title="Spotlights"
-              desc="Model, brand, and photographer of the week — celebrating outstanding community members."
+              icon={<Users size={20} />}
+              title="Community Feed"
+              desc="Stories, tips, and behind-the-scenes content shared by verified members."
             />
           </div>
         </div>

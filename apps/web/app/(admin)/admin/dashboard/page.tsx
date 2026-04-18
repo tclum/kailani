@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Users, Briefcase, ShieldCheck, AlertTriangle, MessageSquare,
-  Heart, TrendingUp, Clock, UserCheck, Activity,
+  Heart, TrendingUp, Clock, UserCheck, Activity, Star,
 } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -246,6 +246,9 @@ export default function AdminDashboard() {
           </Link>
           <Link href="/admin/campaigns" className="px-4 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors flex items-center gap-2">
             <Briefcase size={15} /> Campaign Oversight
+          </Link>
+          <Link href="/admin/spotlights" className="px-4 py-2.5 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors flex items-center gap-2">
+            <Star size={15} /> Weekly Spotlights
           </Link>
         </div>
       </div>

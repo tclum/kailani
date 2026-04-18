@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TutorialCategory, TutorialDifficulty } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const DEMO_PASSWORD = 'Demo1234!';
@@ -962,6 +962,30 @@ async function main() {
     process.stdout.write('.');
   }
   console.log(' ✓');
+
+  // ── Tutorials ────────────────────────────────────────────────────────────
+  const tutorialSeeds = [
+    { title: 'Runway Walking Fundamentals', description: 'Master the classic runway walk — posture, stride, turns, and presence. Learn techniques used at top fashion weeks worldwide.', category: TutorialCategory.MODELING, difficulty: TutorialDifficulty.BEGINNER, duration: 18, thumbnailUrl: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=600&q=80' },
+    { title: 'Posing for Editorial Campaigns', description: 'Understand how to pose for high-fashion editorial shoots. Covers body angles, facial expressions, and working with the camera.', category: TutorialCategory.MODELING, difficulty: TutorialDifficulty.INTERMEDIATE, duration: 24, thumbnailUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80' },
+    { title: 'Camera-Ready Makeup: Base & Foundation', description: 'Build a flawless base that photographs beautifully under all lighting conditions — from natural to studio flash.', category: TutorialCategory.BEAUTY, difficulty: TutorialDifficulty.BEGINNER, duration: 22, thumbnailUrl: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600&q=80' },
+    { title: 'Editorial Eye Looks', description: 'Create bold, editorial eye makeup looks for high-fashion shoots. Includes cut creases, graphic liner, and avant-garde techniques.', category: TutorialCategory.BEAUTY, difficulty: TutorialDifficulty.ADVANCED, duration: 35, thumbnailUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80' },
+    { title: 'Studio Lighting for Fashion Photography', description: 'Set up and control studio lights for fashion shoots — Rembrandt, butterfly, loop, and split lighting patterns explained.', category: TutorialCategory.PHOTOGRAPHY, difficulty: TutorialDifficulty.INTERMEDIATE, duration: 40, thumbnailUrl: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=600&q=80' },
+    { title: 'Directing Models on Set', description: 'How to communicate clearly with models to get the shots you need. Verbal cues, body language, and building trust quickly.', category: TutorialCategory.PHOTOGRAPHY, difficulty: TutorialDifficulty.INTERMEDIATE, duration: 28, thumbnailUrl: 'https://images.unsplash.com/photo-1554080353-a576cf803bda?w=600&q=80' },
+    { title: 'Modeling Rates: What to Charge', description: 'Understand day rates, usage fees, exclusivity clauses, and how to price your work at different experience levels and markets.', category: TutorialCategory.BUSINESS, difficulty: TutorialDifficulty.BEGINNER, duration: 15, thumbnailUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&q=80' },
+    { title: 'Negotiating Your First Agency Contract', description: 'What to look for in a modeling agency contract — commission splits, exclusivity terms, expense recoupment, and exit clauses.', category: TutorialCategory.BUSINESS, difficulty: TutorialDifficulty.INTERMEDIATE, duration: 30, thumbnailUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&q=80' },
+    { title: 'Building Your First Portfolio', description: 'A complete guide for new models on building a strong, versatile portfolio from scratch — tests, TFP shoots, and what brands want to see.', category: TutorialCategory.INDUSTRY_GUIDES, difficulty: TutorialDifficulty.BEGINNER, duration: 20, thumbnailUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&q=80' },
+    { title: 'Understanding Usage Rights', description: 'Usage rights explained simply — print vs digital, duration, exclusivity, territory, and how these affect your fee.', category: TutorialCategory.INDUSTRY_GUIDES, difficulty: TutorialDifficulty.INTERMEDIATE, duration: 25, thumbnailUrl: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&q=80' },
+    { title: 'Writing the Perfect Campaign Brief', description: 'For brands: how to write a campaign brief that attracts the right talent, communicates your vision, and runs smoothly on set.', category: TutorialCategory.BUSINESS, difficulty: TutorialDifficulty.BEGINNER, duration: 18, thumbnailUrl: 'https://images.unsplash.com/photo-1434626881859-194d67b2b86f?w=600&q=80' },
+    { title: 'Skincare for Models: Camera-Ready Skin', description: 'Daily routines, pre-shoot prep, and product recommendations for maintaining healthy, photogenic skin.', category: TutorialCategory.BEAUTY, difficulty: TutorialDifficulty.BEGINNER, duration: 16, thumbnailUrl: 'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&q=80' },
+  ];
+  const existingTutorials = await prisma.tutorial.count();
+  if (existingTutorials === 0) {
+    console.log(`\n📚  Seeding ${tutorialSeeds.length} tutorials…`);
+    await prisma.tutorial.createMany({ data: tutorialSeeds });
+    console.log(' ✓');
+  } else {
+    console.log(`\n📚  Tutorials already seeded (${existingTutorials}), skipping`);
+  }
 
   // ── Summary ──────────────────────────────────────────────────────────────
   const [users, models, brands, photographers, campaigns] = await Promise.all([

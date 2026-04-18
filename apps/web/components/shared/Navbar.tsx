@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag, Users, CreditCard } from 'lucide-react';
+import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag, Users, CreditCard, BookOpen, Newspaper, Calculator, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearTokens, getCurrentUser } from '@/lib/auth';
 import { apiFetch } from '@/lib/api';
@@ -188,9 +188,41 @@ export function Navbar() {
               )}
               {user.role !== 'ADMIN' && (
                 <Button variant="ghost" size="sm" asChild>
+                  <Link href="/tutorials" className="flex items-center gap-1.5">
+                    <BookOpen size={15} />
+                    Tutorials
+                  </Link>
+                </Button>
+              )}
+              {user.role !== 'ADMIN' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/news" className="flex items-center gap-1.5">
+                    <Newspaper size={15} />
+                    News
+                  </Link>
+                </Button>
+              )}
+              {(user.role === 'MODEL' || user.role === 'PHOTOGRAPHER') && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/tools/rate-calculator" className="flex items-center gap-1.5">
+                    <Calculator size={15} />
+                    Rates
+                  </Link>
+                </Button>
+              )}
+              {user.role !== 'ADMIN' && (
+                <Button variant="ghost" size="sm" asChild>
                   <Link href="/community" className="flex items-center gap-1.5">
                     <Users size={15} />
                     Community
+                  </Link>
+                </Button>
+              )}
+              {user.role === 'ADMIN' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/admin/spotlights" className="flex items-center gap-1.5">
+                    <Star size={15} />
+                    Spotlights
                   </Link>
                 </Button>
               )}

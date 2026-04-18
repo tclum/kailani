@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Camera, Image as ImageIcon, Users, MessageSquare, Zap, User, ChevronRight, Heart } from 'lucide-react';
+import { Camera, Image as ImageIcon, Users, MessageSquare, Zap, User, ChevronRight, Heart, BookOpen, Calculator } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 
 interface PhotographerProfile {
@@ -158,6 +158,8 @@ export default function PhotographerDashboard() {
           <QuickAction href="/photographer/portfolio" icon={<Camera size={18} />} label="Manage Portfolio" sub="Upload, reorder, and curate your work" />
           <QuickAction href="/photographer/discover" icon={<Zap size={18} />} label="Discover" sub="Find models and brands to collaborate with" />
           <QuickAction href="/photographer/inbox" icon={<MessageSquare size={18} />} label="Inbox" sub={unread > 0 ? `${unread} unread message${unread !== 1 ? 's' : ''}` : 'No unread messages'} />
+          <QuickAction href="/tutorials" icon={<BookOpen size={18} />} label="Tutorials" sub="Lighting, directing, and business guides" />
+          <QuickAction href="/tools/rate-calculator" icon={<Calculator size={18} />} label="Rate Calculator" sub="Estimate your fair market rate" />
         </div>
       </div>
 

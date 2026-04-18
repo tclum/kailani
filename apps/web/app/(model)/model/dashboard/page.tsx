@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Camera, ImageIcon, MessageSquare, Zap, User, ChevronRight,
-  Heart, Briefcase, ShieldCheck, AlertCircle, CheckCircle2, Star, CreditCard,
+  Heart, Briefcase, ShieldCheck, AlertCircle, CheckCircle2, Star, CreditCard, BookOpen, Calculator,
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 
@@ -242,6 +242,8 @@ export default function ModelDashboard() {
           <QuickAction href="/model/comp-card" icon={<CreditCard size={18} />} label="Generate Comp Card" sub="Download a print-ready PDF for agencies" />
           <QuickAction href="/model/discover" icon={<Zap size={18} />} label="Discover Campaigns" sub="Find campaigns to apply to" />
           <QuickAction href="/model/inbox" icon={<MessageSquare size={18} />} label="Inbox" sub={unread > 0 ? `${unread} unread message${unread !== 1 ? 's' : ''}` : 'No unread messages'} />
+          <QuickAction href="/tutorials" icon={<BookOpen size={18} />} label="Tutorials" sub="Posing, beauty, and industry guides" />
+          <QuickAction href="/tools/rate-calculator" icon={<Calculator size={18} />} label="Rate Calculator" sub="Estimate your fair market rate" />
         </div>
       </div>
 

@@ -20,6 +20,8 @@ import reportRoutes from './routes/reports';
 import blockRoutes from './routes/blocks';
 import structuredReviewRoutes from './routes/structured-reviews';
 import workingTogetherRoutes from './routes/working-together';
+import tutorialRoutes from './routes/tutorials';
+import spotlightRoutes from './routes/spotlights';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -48,6 +50,8 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/blocks', blockRoutes);
 app.use('/api/structured-reviews', structuredReviewRoutes);
 app.use('/api/working-together', workingTogetherRoutes);
+app.use('/api/tutorials', tutorialRoutes);
+app.use('/api/spotlights', spotlightRoutes);
 
 // Global error handler
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
