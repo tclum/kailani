@@ -186,7 +186,7 @@ function ModelCard({ m }: { m: FeaturedModel }) {
       <div className="rounded-2xl overflow-hidden border border-border bg-card hover:shadow-lg transition-shadow">
         <div className="aspect-[3/4] relative bg-muted overflow-hidden">
           {img ? (
-            <Image src={img} alt={m.displayName} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+            <Image src={img} alt={m.displayName} fill sizes="(max-width: 640px) 50vw, 208px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
               style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}>
@@ -289,7 +289,7 @@ function SpotlightCard({ spotlight }: { spotlight: Spotlight }) {
       <div className="rounded-2xl overflow-hidden border border-amber-200 bg-card hover:shadow-lg transition-shadow">
         <div className="aspect-[3/4] relative bg-muted overflow-hidden">
           {img ? (
-            <Image src={img} alt={name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+            <Image src={img} alt={name} fill sizes="(max-width: 640px) 50vw, 224px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white"
               style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)' }}>

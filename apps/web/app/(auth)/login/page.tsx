@@ -135,8 +135,9 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="auth-btn w-full h-11 rounded-lg text-sm mt-2"
+              className="auth-btn w-full h-11 rounded-lg text-sm mt-2 inline-flex items-center justify-center gap-2"
             >
+              {loading && <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>

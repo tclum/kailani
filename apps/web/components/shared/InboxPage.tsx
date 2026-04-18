@@ -1,13 +1,15 @@
 'use client';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import { connectSocket, disconnectSocket, getSocket } from '@/lib/socket';
+import { SkeletonAvatar } from '@/components/shared/Skeleton';
 import type { ApiThread, ApiThreadMember, Message } from '@kailani/types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -98,7 +100,7 @@ function Avatar({ src, name, size = 36 }: { src: string | null; name: string; si
         background: src ? undefined : 'linear-gradient(135deg,#ec4899,#be185d)',
       }}
     >
-      {src ? <Image src={src} alt={name} fill className="object-cover" /> : initials}
+      {src ? <Image src={src} alt={name} fill sizes="40px" className="object-cover" /> : initials}
     </div>
   );
 }
@@ -431,7 +433,9 @@ function MessagePanel({
 
 function InboxInner() {
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [threads, setThreads] = useState<ApiThread[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(searchParams.get('thread'));
   // Mobile: 'list' shows thread list, 'thread' shows message panel
   const [mobileView, setMobileView] = useState<'list' | 'thread'>(
@@ -439,8 +443,17 @@ function InboxInner() {
   );
   const me = getCurrentUser();
 
+  // Determine discover href based on current path
+  const discoverHref =
+    pathname?.startsWith('/brand') ? '/brand/discover' :
+    pathname?.startsWith('/photographer') ? '/photographer/discover' :
+    '/model/discover';
+
   useEffect(() => {
-    apiFetch<ApiThread[]>('/api/threads').then(setThreads).catch(() => {});
+    apiFetch<ApiThread[]>('/api/threads')
+      .then(setThreads)
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   // Connect socket once on mount, keep alive
@@ -493,12 +506,36 @@ function InboxInner() {
           <h2 className="font-semibold tracking-wide">Inbox</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {threads.length === 0 ? (
-            <div className="p-6 text-center space-y-2">
-              <p className="text-sm text-muted-foreground">No messages yet.</p>
-              <p className="text-xs text-muted-foreground/60">
-                Start a conversation by visiting someone&apos;s profile.
-              </p>
+          {loading ? (
+            <div className="divide-y divide-border/40">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="px-4 py-3 flex items-center gap-3">
+                  <SkeletonAvatar size={40} />
+                  <div className="flex-1 space-y-2">
+                    <div className="animate-pulse bg-muted rounded-xl h-3 w-1/2" />
+                    <div className="animate-pulse bg-muted rounded-xl h-3 w-3/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : threads.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 px-4">
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                <MessageSquare size={24} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold">No conversations yet</h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
+                  Visit someone&apos;s profile to start a conversation.
+                </p>
+              </div>
+              <Link
+                href={discoverHref}
+                className="h-9 px-5 rounded-xl text-sm font-medium text-white inline-flex items-center"
+                style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
+              >
+                Discover
+              </Link>
             </div>
           ) : (
             threads.map((t) => (

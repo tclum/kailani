@@ -31,7 +31,7 @@ export function ModelCard({ id, userId, displayName, bio, location, coverImage, 
         <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
           <div className="aspect-[3/4] relative bg-muted">
             {image ? (
-              <Image src={image} alt={displayName} fill className="object-cover" />
+              <Image src={image} alt={displayName} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px" className="object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-4xl text-muted-foreground">
                 {displayName[0]}

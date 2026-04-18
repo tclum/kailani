@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Newspaper, ExternalLink, RefreshCw } from 'lucide-react';
+import { PageTransition } from '@/components/shared/PageTransition';
+import { SkeletonCard } from '@/components/shared/Skeleton';
 
 type NewsCategory = 'ALL' | 'fashion' | 'beauty' | 'business' | 'photography';
 
@@ -118,6 +120,7 @@ export default function NewsPage() {
   }
 
   return (
+    <PageTransition>
     <div className="max-w-6xl mx-auto py-10 px-4 space-y-8">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
@@ -164,16 +167,17 @@ export default function NewsPage() {
       {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border overflow-hidden animate-pulse">
-              <div className="h-44 bg-muted" />
-              <div className="p-4 space-y-2">
-                <div className="h-4 bg-muted rounded w-3/4" />
-                <div className="h-3 bg-muted rounded w-full" />
-                <div className="h-3 bg-muted rounded w-1/2" />
-              </div>
-            </div>
-          ))}
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+      ) : articles.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+            <Newspaper size={24} />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold">No news yet</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">Check back later for industry updates.</p>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -183,6 +187,7 @@ export default function NewsPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
 

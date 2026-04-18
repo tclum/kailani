@@ -5,6 +5,7 @@ import {
   Download, Link2, Check, Palette, ToggleLeft, Type,
   ImageIcon, AlertCircle, Loader2, ChevronRight,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -294,6 +295,7 @@ export default function CompCardPage() {
     if (!profile) return;
     const url = `${window.location.origin}/comp-card/${profile.userId}`;
     await navigator.clipboard.writeText(url);
+    toast.success('Link copied to clipboard');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

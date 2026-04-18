@@ -76,7 +76,7 @@ function SavedCard({
       <Link href={href} className="block">
         <div className="aspect-[3/4] relative bg-muted overflow-hidden">
           {img ? (
-            <Image src={img} alt={name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+            <Image src={img} alt={name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 300px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-white"
               style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}>
@@ -194,14 +194,31 @@ export default function SavedProfilesPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-48">
-          <div className="w-8 h-8 rounded-full border-4 border-pink-300 border-t-pink-600 animate-spin" />
+        <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-0">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="break-inside-avoid mb-4">
+              <div className="rounded-2xl border bg-card overflow-hidden">
+                <div className="aspect-[3/4] bg-muted animate-pulse" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : allBoards.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
-          <FolderOpen size={40} className="text-muted-foreground/40" />
-          <p className="text-muted-foreground">No saved profiles yet.</p>
-          <p className="text-sm text-muted-foreground/60">Browse models and photographers, then tap the bookmark icon to save them here.</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+            <Bookmark size={24} />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold">No saved profiles yet</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">Start swiping to discover and save talent.</p>
+          </div>
+          <Link
+            href="/brand/discover"
+            className="h-9 px-5 rounded-xl text-sm font-medium text-white inline-flex items-center"
+            style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
+          >
+            Discover Models
+          </Link>
         </div>
       ) : (
         <>

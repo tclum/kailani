@@ -142,7 +142,7 @@ function DraggableCard({ card, onLike, onPass, active }: DraggableCardProps) {
       <div className="w-full h-full rounded-3xl overflow-hidden shadow-2xl relative">
         {/* Background image */}
         {imageSrc ? (
-          <Image src={imageSrc} alt={card.name} fill className="object-cover" draggable={false} />
+          <Image src={imageSrc} alt={card.name} fill sizes="(max-width: 640px) 100vw, 400px" className="object-cover" draggable={false} />
         ) : (
           <div
             className="w-full h-full flex items-center justify-center text-6xl font-bold text-white"
@@ -288,8 +288,15 @@ export function SwipeStack({ inboxHref }: SwipeStackProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[500px]">
-        <div className="w-10 h-10 rounded-full border-4 border-pink-300 border-t-pink-600 animate-spin" />
+      <div className="flex flex-col items-center gap-8 pb-10">
+        <div className="relative w-full max-w-sm mx-auto" style={{ height: 520 }}>
+          <div className="absolute inset-0 rounded-3xl overflow-hidden bg-muted animate-pulse" />
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 rounded-full bg-muted animate-pulse" />
+          <div className="w-20 h-20 rounded-full bg-muted animate-pulse" />
+          <div className="w-16 h-16" />
+        </div>
       </div>
     );
   }
@@ -398,17 +405,23 @@ function UnapprovedPlaceholder() {
 
 function EmptyQueue() {
   return (
-    <div className="flex flex-col items-center justify-center h-[500px] gap-4 text-center px-6">
-      <div
-        className="w-20 h-20 rounded-full flex items-center justify-center text-3xl"
-        style={{ background: 'linear-gradient(135deg,#fce7f3,#fdf2f8)' }}
-      >
+    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+      <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground text-2xl">
         🎉
       </div>
-      <h2 className="text-xl font-bold">You're all caught up!</h2>
-      <p className="text-muted-foreground max-w-xs">
-        You've seen everyone for now. Check back later for new profiles and campaigns.
-      </p>
+      <div>
+        <h3 className="text-base font-semibold">You&apos;ve seen everyone!</h3>
+        <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
+          Check back soon for new profiles.
+        </p>
+      </div>
+      <button
+        onClick={() => window.location.reload()}
+        className="h-9 px-5 rounded-xl text-sm font-medium text-white inline-flex items-center"
+        style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
+      >
+        Refresh
+      </button>
     </div>
   );
 }

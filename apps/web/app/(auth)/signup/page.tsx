@@ -350,8 +350,9 @@ export default function SignupPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="auth-btn w-full h-11 rounded-lg text-sm mt-1"
+                    className="auth-btn w-full h-11 rounded-lg text-sm mt-1 inline-flex items-center justify-center gap-2"
                   >
+                    {loading && <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
                     {loading ? 'Creating account…' : 'Create Account'}
                   </button>
                 </form>

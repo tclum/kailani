@@ -13,7 +13,7 @@ export function BrandProfile({ profile }: Props) {
       <div className="flex gap-6 items-start">
         <div className="w-20 h-20 relative rounded-lg overflow-hidden bg-muted flex-shrink-0">
           {profile.logoUrl ? (
-            <Image src={profile.logoUrl} alt={profile.brandName} fill className="object-cover" />
+            <Image src={profile.logoUrl} alt={profile.brandName} fill sizes="80px" className="object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-2xl text-muted-foreground">
               {profile.brandName[0]}

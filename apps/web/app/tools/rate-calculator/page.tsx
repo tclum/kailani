@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Copy, Check, Calculator } from 'lucide-react';
+import { PageTransition } from '@/components/shared/PageTransition';
 
 type Role = 'model' | 'photographer';
 type Experience = 'new' | 'emerging' | 'established' | 'top';
@@ -94,6 +95,7 @@ export default function RateCalculatorPage() {
   }
 
   return (
+    <PageTransition>
     <div className="max-w-2xl mx-auto py-10 px-4 space-y-8">
       {/* Header */}
       <div>
@@ -207,6 +209,7 @@ export default function RateCalculatorPage() {
         Rates are estimates based on industry guidelines. Always negotiate based on your individual experience, the specific brief, and current market conditions.
       </p>
     </div>
+    </PageTransition>
   );
 }
 

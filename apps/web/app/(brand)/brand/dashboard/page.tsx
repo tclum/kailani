@@ -8,6 +8,7 @@ import {
   FileText, BookOpen, Newspaper,
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
+import { PageTransition } from '@/components/shared/PageTransition';
 
 interface BrandProfile {
   brandName: string;
@@ -181,6 +182,7 @@ export default function BrandDashboard() {
   const brandLogo = profile?.logoUrl ?? profile?.profileImage ?? null;
 
   return (
+    <PageTransition>
     <div className="max-w-5xl space-y-8">
 
       {/* Welcome header */}
@@ -406,5 +408,6 @@ export default function BrandDashboard() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }

@@ -9,6 +9,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { apiFetch } from '@/lib/api';
+import { PageTransition } from '@/components/shared/PageTransition';
 
 interface Stats {
   totalUsers: number;
@@ -94,6 +95,7 @@ export default function AdminDashboard() {
   })) ?? [];
 
   return (
+    <PageTransition>
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
@@ -253,5 +255,6 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

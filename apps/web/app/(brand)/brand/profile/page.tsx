@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { Building2, Globe, MapPin, Instagram, FileText, Camera, CheckCircle2, Sparkles, Tag } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
 import { getAccessToken, getCurrentUser } from '@/lib/auth';
 
@@ -22,7 +23,6 @@ export default function BrandProfilePage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
 
@@ -49,7 +49,6 @@ export default function BrandProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingLogo(true);
-    setError('');
     try {
       const fd = new FormData();
       fd.append('image', file);
@@ -59,10 +58,11 @@ export default function BrandProfilePage() {
         body: fd,
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'Logo upload failed'); return; }
+      if (!res.ok) { toast.error(data.error ?? 'Logo upload failed'); return; }
       setLogoUrl(data.url);
+      toast.success('Logo updated');
     } catch {
-      setError('Logo upload failed — please try again');
+      toast.error('Logo upload failed — please try again');
     } finally {
       setUploadingLogo(false);
       if (logoRef.current) logoRef.current.value = '';
@@ -72,7 +72,6 @@ export default function BrandProfilePage() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setError('');
     setSaved(false);
     try {
       const payload: Record<string, unknown> = {
@@ -85,9 +84,10 @@ export default function BrandProfilePage() {
       };
       await apiFetch('/api/brands/me', { method: 'PUT', body: payload });
       setSaved(true);
+      toast.success('Profile saved successfully');
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
-      setError(err?.error ?? 'Save failed');
+      toast.error(err?.error ?? 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -122,7 +122,7 @@ export default function BrandProfilePage() {
               boxShadow: saved ? '0 4px 16px rgba(34,197,94,0.3)' : '0 4px 16px rgba(236,72,153,0.3)',
             }}
           >
-            {saved ? <><CheckCircle2 size={15} /> Saved!</> : saving ? 'Saving…' : <><Sparkles size={15} /> Save Profile</>}
+            {saved ? <><CheckCircle2 size={15} /> Saved!</> : saving ? <><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving…</> : <><Sparkles size={15} /> Save Profile</>}
           </button>
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function BrandProfilePage() {
                 style={{ background: logoUrl ? undefined : 'linear-gradient(135deg,#ec4899,#be185d)' }}
               >
                 {logoUrl ? (
-                  <Image src={logoUrl} alt="Brand logo" fill className="object-cover" />
+                  <Image src={logoUrl} alt="Brand logo" fill sizes="96px" className="object-cover" />
                 ) : (
                   form.brandName ? form.brandName[0].toUpperCase() : '?'
                 )}
@@ -202,10 +202,6 @@ export default function BrandProfilePage() {
         {/* Right: form */}
         <div className="lg:col-span-2">
           <form id="brand-profile-form" onSubmit={handleSave} className="space-y-5">
-            {error && (
-              <div className="rounded-xl px-4 py-3 text-sm text-red-600 bg-red-50 border border-red-200">{error}</div>
-            )}
-
             <FormSection icon={<Building2 size={16} />} title="Brand Name" required>
               <input
                 value={form.brandName}

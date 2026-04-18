@@ -120,7 +120,7 @@ function ApplicantCard({
         <div className="px-4 pb-3 grid grid-cols-4 gap-1">
           {m.portfolioImages.slice(0, 4).map((url, i) => (
             <div key={i} className="aspect-square rounded-lg overflow-hidden bg-muted relative">
-              <Image src={url} alt="" fill className="object-cover" />
+              <Image src={url} alt="" fill sizes="(max-width: 768px) 25vw, 150px" className="object-cover" />
             </div>
           ))}
         </div>

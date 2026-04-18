@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { BookOpen, Clock, ChevronRight, X, Play } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
+import { PageTransition } from '@/components/shared/PageTransition';
+import { SkeletonCard } from '@/components/shared/Skeleton';
 
 type Category = 'ALL' | 'MODELING' | 'BEAUTY' | 'PHOTOGRAPHY' | 'BUSINESS' | 'INDUSTRY_GUIDES';
 type Difficulty = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
@@ -59,6 +61,7 @@ export default function TutorialsPage() {
     : tutorials.filter((t) => t.category === activeCategory);
 
   return (
+    <PageTransition>
     <div className="max-w-6xl mx-auto py-10 px-4 space-y-8">
       {/* Header */}
       <div className="flex items-start gap-3">
@@ -89,19 +92,18 @@ export default function TutorialsPage() {
       {/* Grid */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl border overflow-hidden animate-pulse">
-              <div className="h-44 bg-muted" />
-              <div className="p-4 space-y-2">
-                <div className="h-4 bg-muted rounded w-3/4" />
-                <div className="h-3 bg-muted rounded w-full" />
-                <div className="h-3 bg-muted rounded w-2/3" />
-              </div>
-            </div>
-          ))}
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-muted-foreground text-center py-16">No tutorials in this category yet.</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+            <BookOpen size={24} />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold">No tutorials yet</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">Check back soon — new tutorials are coming.</p>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map((t) => (
@@ -150,6 +152,7 @@ export default function TutorialsPage() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }
 

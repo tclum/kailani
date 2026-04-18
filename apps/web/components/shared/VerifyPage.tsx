@@ -277,7 +277,7 @@ const UploadField = React.forwardRef<HTMLInputElement, { label: string; hint: st
         <label className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-border hover:border-pink-300 transition-colors cursor-pointer p-6 bg-muted/30">
           {preview ? (
             <div className="relative w-full max-w-xs aspect-video rounded-xl overflow-hidden">
-              <Image src={preview} alt="Preview" fill className="object-cover" />
+              <Image src={preview} alt="Preview" fill sizes="(max-width: 640px) 100vw, 400px" className="object-cover" />
             </div>
           ) : (
             <>

@@ -86,7 +86,7 @@ export default function PublicPhotographerProfilePage() {
       <div className="flex gap-6 items-start">
         <div className="w-32 h-32 relative rounded-full overflow-hidden bg-muted flex-shrink-0">
           {profile.profileImage ? (
-            <Image src={profile.profileImage} alt={profile.displayName} fill className="object-cover" />
+            <Image src={profile.profileImage} alt={profile.displayName} fill sizes="128px" className="object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-4xl text-muted-foreground">
               {profile.displayName[0]}
@@ -145,7 +145,7 @@ export default function PublicPhotographerProfilePage() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {profile.portfolioImages.map((url, i) => (
               <div key={i} className="aspect-square relative rounded-md overflow-hidden bg-muted">
-                <Image src={url} alt={`Portfolio ${i + 1}`} fill className="object-cover" />
+                <Image src={url} alt={`Portfolio ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover" />
               </div>
             ))}
           </div>

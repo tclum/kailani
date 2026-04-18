@@ -162,7 +162,7 @@ function VerifCard({
             onClick={() => setShowId(true)}
             className="group relative w-full h-36 rounded-xl overflow-hidden bg-muted hover:opacity-90 transition-opacity block"
           >
-            <Image src={req.idImageUrl} alt="ID Document" fill className="object-cover" />
+            <Image src={req.idImageUrl} alt="ID Document" fill sizes="(max-width: 640px) 100vw, 400px" className="object-cover" />
             <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-sm font-medium">
               <ExternalLink size={14} /> View full size
             </div>

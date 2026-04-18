@@ -7,6 +7,7 @@ import {
   Heart, Briefcase, ShieldCheck, AlertCircle, CheckCircle2, Star, CreditCard, BookOpen, Calculator, Newspaper, Users,
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
+import { PageTransition } from '@/components/shared/PageTransition';
 
 interface ModelProfile {
   displayName: string;
@@ -146,6 +147,7 @@ export default function ModelDashboard() {
   const pct = profile ? completionPct(profile) : 0;
 
   return (
+    <PageTransition>
     <div className="max-w-5xl space-y-8">
 
       {/* Verification banner */}
@@ -346,5 +348,6 @@ export default function ModelDashboard() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }

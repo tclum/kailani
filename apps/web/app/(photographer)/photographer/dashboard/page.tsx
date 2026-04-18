@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Camera, Image as ImageIcon, Users, MessageSquare, Zap, User, ChevronRight, Heart, BookOpen, Calculator, Newspaper } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
+import { PageTransition } from '@/components/shared/PageTransition';
 
 interface PhotographerProfile {
   displayName: string;
@@ -105,6 +106,7 @@ export default function PhotographerDashboard() {
   const initials = profile?.displayName?.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase() ?? '?';
 
   return (
+    <PageTransition>
     <div className="max-w-5xl space-y-8">
 
       {/* Welcome header */}
@@ -271,5 +273,6 @@ export default function PhotographerDashboard() {
         </div>
       )}
     </div>
+    </PageTransition>
   );
 }

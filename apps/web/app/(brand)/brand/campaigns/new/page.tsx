@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
 
 export default function NewCampaignPage() {
@@ -20,7 +21,6 @@ export default function NewCampaignPage() {
     tags: '',
     status: 'DRAFT' as 'DRAFT' | 'OPEN',
   });
-  const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   function update(field: string, value: string) {
@@ -30,7 +30,6 @@ export default function NewCampaignPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    setError('');
     try {
       const payload: Record<string, unknown> = {
         title: form.title,
@@ -43,9 +42,10 @@ export default function NewCampaignPage() {
         tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
       };
       const campaign = await apiFetch<any>('/api/campaigns', { method: 'POST', body: payload });
+      toast.success('Campaign created');
       router.push(`/brand/campaigns/${campaign.id}`);
     } catch (err: any) {
-      setError(err?.error ?? 'Failed to create campaign');
+      toast.error(err?.error ?? 'Failed to create campaign');
     } finally {
       setSaving(false);
     }
@@ -58,7 +58,6 @@ export default function NewCampaignPage() {
         <Card>
           <CardHeader><CardTitle>Details</CardTitle></CardHeader>
           <CardContent className="space-y-4">
-            {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="space-y-1">
               <Label>Title <span className="text-destructive">*</span></Label>
               <Input value={form.title} onChange={(e) => update('title', e.target.value)} required />
@@ -110,7 +109,10 @@ export default function NewCampaignPage() {
             </div>
           </CardContent>
         </Card>
-        <Button type="submit" disabled={saving}>{saving ? 'Creating…' : 'Create Campaign'}</Button>
+        <Button type="submit" disabled={saving} className="inline-flex items-center gap-2">
+          {saving && <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
+          {saving ? 'Creating…' : 'Create Campaign'}
+        </Button>
       </form>
     </div>
   );

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
+import { SkeletonCard } from '@/components/shared/Skeleton';
 import type { ApplicationWithCampaign, ApplicationStatus } from '@kailani/types';
 
 const STATUS_META: Record<ApplicationStatus, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
@@ -107,8 +108,14 @@ export default function ModelJobsPage() {
   }, []);
 
   if (loading) return (
-    <div className="flex justify-center py-16">
-      <div className="w-8 h-8 rounded-full border-4 border-pink-300 border-t-pink-600 animate-spin" />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">My Applications</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">Loading your applications…</p>
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+      </div>
     </div>
   );
 
@@ -120,13 +127,17 @@ export default function ModelJobsPage() {
       </div>
 
       {apps.length === 0 ? (
-        <div className="flex flex-col items-center py-16 gap-3 text-center">
-          <div className="w-16 h-16 rounded-full bg-pink-50 flex items-center justify-center text-3xl">📋</div>
-          <h2 className="font-semibold">No applications yet</h2>
-          <p className="text-sm text-muted-foreground max-w-xs">Browse open campaigns and apply to the ones that match your style.</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+            <Clock size={24} />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold">No jobs yet</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">Apply to campaigns and track them here.</p>
+          </div>
           <Link
-            href="/model/campaigns"
-            className="mt-2 h-10 px-5 rounded-xl text-sm font-semibold text-white inline-flex items-center"
+            href="/model/discover"
+            className="h-9 px-5 rounded-xl text-sm font-medium text-white inline-flex items-center"
             style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}
           >
             Browse Campaigns

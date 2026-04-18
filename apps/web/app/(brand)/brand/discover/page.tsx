@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Zap, LayoutGrid, Search, MapPin } from 'lucide-react';
+import { Zap, LayoutGrid, Search, MapPin, Users } from 'lucide-react';
 import { SwipeStack } from '@/components/swipe/SwipeStack';
 import { ModelCard } from '@/components/model/ModelCard';
+import { SkeletonCard } from '@/components/shared/Skeleton';
 import { apiFetch } from '@/lib/api';
 
 interface ModelListing {
@@ -111,12 +112,20 @@ export default function BrandDiscoverPage() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="w-8 h-8 rounded-full border-4 border-pink-300 border-t-pink-600 animate-spin" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center py-16 gap-3 text-center">
-              <p className="text-muted-foreground">No models found.</p>
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground">
+                <Users size={24} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold">No models found</h3>
+                <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">Try adjusting your filters or check back later.</p>
+              </div>
             </div>
           ) : (
             <>

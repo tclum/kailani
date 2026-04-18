@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Star, Trash2, GripVertical, Plus, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth';
 
@@ -32,7 +33,6 @@ interface PortfolioState {
 export default function PortfolioPage() {
   const [state, setState] = useState<PortfolioState>({ images: [], coverImage: null });
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
@@ -54,7 +54,6 @@ export default function PortfolioPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    setError(null);
     try {
       const fd = new FormData();
       fd.append('image', file);
@@ -64,10 +63,11 @@ export default function PortfolioPage() {
         body: fd,
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'Upload failed'); return; }
+      if (!res.ok) { toast.error(data.error ?? 'Upload failed'); return; }
       setState((prev) => ({ ...prev, images: [...prev.images, data.url] }));
+      toast.success('Photo uploaded');
     } catch {
-      setError('Upload failed — please try again');
+      toast.error('Upload failed — please try again');
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';
@@ -75,28 +75,28 @@ export default function PortfolioPage() {
   }
 
   async function handleDelete(url: string) {
-    setError(null);
     try {
       await apiFetch('/api/models/me/portfolio', { method: 'DELETE', body: { url } });
       setState((prev) => ({
         images: prev.images.filter((u) => u !== url),
         coverImage: prev.coverImage === url ? null : prev.coverImage,
       }));
+      toast.success('Photo deleted');
     } catch {
-      setError('Delete failed — please try again');
+      toast.error('Delete failed — please try again');
     }
   }
 
   async function handleSetCover(url: string) {
-    setError(null);
     try {
       const updated = await apiFetch<any>('/api/models/me', {
         method: 'PUT',
         body: { coverImage: url },
       });
       setState((prev) => ({ ...prev, coverImage: updated.coverImage ?? url }));
+      toast.success('Cover photo updated');
     } catch {
-      setError('Failed to set cover photo');
+      toast.error('Failed to set cover photo');
     }
   }
 
@@ -110,7 +110,7 @@ export default function PortfolioPage() {
     try {
       await apiFetch('/api/models/me', { method: 'PUT', body: { portfolioImages: newImages } });
     } catch {
-      setError('Failed to save new order');
+      toast.error('Failed to save new order');
     }
   }
 
@@ -122,10 +122,6 @@ export default function PortfolioPage() {
           <p className="text-sm text-muted-foreground mt-1">Drag to reorder · ★ to set cover · trash to delete</p>
         </div>
       </div>
-
-      {error && (
-        <p className="text-sm text-destructive bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</p>
-      )}
 
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
 
@@ -195,7 +191,7 @@ function SortableImage({
       style={style}
       className="relative group aspect-square rounded-2xl overflow-hidden bg-muted border border-border"
     >
-      <Image src={url} alt="Portfolio" fill className="object-cover" />
+      <Image src={url} alt="Portfolio" fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover" />
 
       {isCover && (
         <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">

@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, KeyboardEvent } from 'react';
 import Image from 'next/image';
 import { MapPin, Instagram, Ruler, DollarSign, CalendarX2, User, X, ChevronRight, CheckCircle2, Sparkles, Palette, Tag, Camera } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
 import { getAccessToken, getCurrentUser } from '@/lib/auth';
 
@@ -42,7 +43,6 @@ export default function ModelProfilePage() {
   const [dateInput, setDateInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarRef = useRef<HTMLInputElement>(null);
@@ -87,10 +87,11 @@ export default function ModelProfilePage() {
         body: fd,
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'Upload failed'); return; }
+      if (!res.ok) { toast.error(data.error ?? 'Upload failed'); return; }
       setProfileImage(data.url);
+      toast.success('Profile photo updated');
     } catch {
-      setError('Avatar upload failed — please try again');
+      toast.error('Avatar upload failed — please try again');
     } finally {
       setUploadingAvatar(false);
       if (avatarRef.current) avatarRef.current.value = '';
@@ -129,7 +130,7 @@ export default function ModelProfilePage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setSaving(true); setError(''); setSaved(false);
+    setSaving(true); setSaved(false);
     try {
       const payload: Record<string, unknown> = {
         displayName:  form.displayName,
@@ -155,9 +156,10 @@ export default function ModelProfilePage() {
 
       await apiFetch('/api/models/me', { method: 'PUT', body: payload });
       setSaved(true);
+      toast.success('Profile saved successfully');
       setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
-      setError(err?.error ?? 'Save failed');
+      toast.error(err?.error ?? 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -199,7 +201,7 @@ export default function ModelProfilePage() {
               boxShadow: saved ? '0 4px 16px rgba(34,197,94,0.3)' : '0 4px 16px rgba(236,72,153,0.3)',
             }}
           >
-            {saved ? <><CheckCircle2 size={15} /> Saved!</> : saving ? 'Saving…' : <><Sparkles size={15} /> Save Profile</>}
+            {saved ? <><CheckCircle2 size={15} /> Saved!</> : saving ? <><span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /> Saving…</> : <><Sparkles size={15} /> Save Profile</>}
           </button>
         </div>
       </div>
@@ -268,10 +270,6 @@ export default function ModelProfilePage() {
           </div>
 
           <form id="profile-form" onSubmit={handleSave}>
-            {error && (
-              <div className="mb-4 rounded-xl px-4 py-3 text-sm text-red-600 bg-red-50 border border-red-200">{error}</div>
-            )}
-
             {/* ── Basic Info ── */}
             {tab === 'basic' && (
               <div className="space-y-5">
@@ -542,7 +540,7 @@ function PreviewCard({ form, tags, profileImage, onAvatarClick, uploading }: {
             style={{ background: profileImage ? undefined : 'linear-gradient(135deg,#ec4899,#be185d)' }}
           >
             {profileImage ? (
-              <Image src={profileImage} alt="Profile" fill className="object-cover" />
+              <Image src={profileImage} alt="Profile" fill sizes="96px" className="object-cover" />
             ) : (
               form.displayName ? form.displayName[0].toUpperCase() : '?'
             )}
