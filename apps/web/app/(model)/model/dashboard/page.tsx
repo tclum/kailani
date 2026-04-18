@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Camera, ImageIcon, MessageSquare, Zap, User, ChevronRight,
-  Heart, Briefcase, ShieldCheck, AlertCircle, CheckCircle2, Star,
+  Heart, Briefcase, ShieldCheck, AlertCircle, CheckCircle2, Star, CreditCard,
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 
@@ -239,6 +239,7 @@ export default function ModelDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <QuickAction href="/model/profile" icon={<User size={18} />} label="Edit Profile" sub="Update your bio, measurements, and rates" />
           <QuickAction href="/model/portfolio" icon={<Camera size={18} />} label="Manage Portfolio" sub="Upload and reorder your portfolio" />
+          <QuickAction href="/model/comp-card" icon={<CreditCard size={18} />} label="Generate Comp Card" sub="Download a print-ready PDF for agencies" />
           <QuickAction href="/model/discover" icon={<Zap size={18} />} label="Discover Campaigns" sub="Find campaigns to apply to" />
           <QuickAction href="/model/inbox" icon={<MessageSquare size={18} />} label="Inbox" sub={unread > 0 ? `${unread} unread message${unread !== 1 ? 's' : ''}` : 'No unread messages'} />
         </div>

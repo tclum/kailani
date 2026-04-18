@@ -34,6 +34,15 @@ router.get('/', async (req: AuthRequest, res) => {
 });
 
 // Must be before /:id to avoid 'me' being treated as an ID
+router.get('/me/comp-card', requireAuth, requireRole('MODEL'), async (req: AuthRequest, res) => {
+  const profile = await getMyModel(req.userId!);
+  if (!profile) {
+    res.status(404).json({ error: 'Model profile not found' });
+    return;
+  }
+  res.json(profile);
+});
+
 router.get('/me', requireAuth, requireRole('MODEL'), async (req: AuthRequest, res) => {
   const profile = await getMyModel(req.userId!);
   if (!profile) {

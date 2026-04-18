@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag, Users } from 'lucide-react';
+import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag, Users, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearTokens, getCurrentUser } from '@/lib/auth';
 import { apiFetch } from '@/lib/api';
@@ -144,6 +144,14 @@ export function Navbar() {
               {user.role === 'PHOTOGRAPHER' && (
                 <Button variant="ghost" size="sm" asChild>
                   <Link href="/photographer/portfolio">Portfolio</Link>
+                </Button>
+              )}
+              {user.role === 'MODEL' && (
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/model/comp-card" className="flex items-center gap-1.5">
+                    <CreditCard size={15} />
+                    Comp Card
+                  </Link>
                 </Button>
               )}
               {user.role === 'MODEL' && (
