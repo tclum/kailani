@@ -12,6 +12,7 @@ import { StructuredReviewsSection } from '@/components/shared/StructuredReviewsS
 import { ProfileActions } from '@/components/shared/ProfileActions';
 import { ProfileSaveButton } from '@/components/shared/ProfileSaveButton';
 import { OwnProfileBanner } from '@/components/shared/OwnProfileBanner';
+import { PortfolioGallery } from '@/components/shared/PortfolioGallery';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import type { PhotographerProfile } from '@kailani/types';
@@ -142,13 +143,14 @@ export default function PublicPhotographerProfilePage() {
       {profile.portfolioImages.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-3">Portfolio</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {profile.portfolioImages.map((url, i) => (
-              <div key={i} className="aspect-square relative rounded-md overflow-hidden bg-muted">
-                <Image src={url} alt={`Portfolio ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover" />
-              </div>
-            ))}
-          </div>
+          <PortfolioGallery
+            images={profile.portfolioImages}
+            coverImage={profile.coverImage}
+            profileName={profile.displayName}
+            profileLocation={profile.location}
+            tags={profile.specialties}
+            updateUrl
+          />
         </div>
       )}
 

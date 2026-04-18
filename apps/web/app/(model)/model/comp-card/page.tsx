@@ -30,6 +30,23 @@ interface CompCardData {
   profileImage?: string | null;
   coverImage?: string | null;
   rates?: { dayRate?: number; halfDayRate?: number; hourlyRate?: number } | null;
+
+  // New fields
+  weightKg?: number | null;
+  build?: string | null;
+  playingAgeMin?: number | null;
+  playingAgeMax?: number | null;
+  gender?: string | null;
+  skills?: string[] | null;
+  languages?: string[] | null;
+  unionStatus?: string | null;
+  representation?: string | null;
+  website?: string | null;
+  televisionCredits?: Array<{ title: string; role?: string; production?: string; director?: string; location?: string; date?: string }> | null;
+  modelingCredits?: Array<{ title: string; role?: string; client?: string; photographer?: string; location?: string; date?: string }> | null;
+  filmCredits?: Array<{ title: string; role?: string; production?: string; director?: string; location?: string; date?: string }> | null;
+  commercialCredits?: Array<{ title: string; role?: string; client?: string; location?: string; date?: string }> | null;
+  education?: Array<{ institution: string; degree?: string; year?: string }> | null;
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -189,6 +206,38 @@ function CompCard({ data, heroSrc, theme, font, show }: CardProps) {
             </div>
           )}
 
+          {/* Playing age + union status row */}
+          {(data.playingAgeMin || data.unionStatus) && (
+            <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+              {data.playingAgeMin && data.playingAgeMax && (
+                <span style={{
+                  fontSize: font.labelSize, letterSpacing: 1.5, padding: '2px 8px',
+                  border: `1px solid ${theme.border}`, color: theme.sub,
+                  borderRadius: 3, textTransform: 'uppercase',
+                }}>Age {data.playingAgeMin}–{data.playingAgeMax}</span>
+              )}
+              {data.unionStatus && (
+                <span style={{
+                  fontSize: font.labelSize, letterSpacing: 1.5, padding: '2px 8px',
+                  border: `1px solid ${theme.accent}`, color: theme.accent,
+                  borderRadius: 3, textTransform: 'uppercase',
+                }}>{data.unionStatus}</span>
+              )}
+            </div>
+          )}
+          {/* Top skills */}
+          {data.skills && data.skills.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+              {data.skills.slice(0, 3).map((s, i) => (
+                <span key={i} style={{
+                  fontSize: 6.5, letterSpacing: 1, padding: '2px 6px',
+                  background: `${theme.accent}22`, color: theme.accent,
+                  borderRadius: 3, textTransform: 'uppercase',
+                }}>{s}</span>
+              ))}
+            </div>
+          )}
+
           {/* Spacer */}
           <div style={{ flex: 1 }} />
 
@@ -238,6 +287,153 @@ function MeasRow({ label, value, theme, font }: { label: string; value: string; 
   );
 }
 
+// ─── Page 2: Credits & Skills ─────────────────────────────────────────────────
+
+function CreditRow({ credit, theme, font }: { credit: any; theme: any; font: any }) {
+  const secondary = credit.production || credit.client || '';
+  const location = credit.location || '';
+  const date = credit.date || '';
+  const meta = [secondary, location && date ? `${location} · ${date}` : location || date].filter(Boolean).join(' — ');
+  return (
+    <div style={{ marginBottom: 6 }}>
+      <div style={{ fontSize: font.subSize, fontWeight: 600, color: theme.text }}>{credit.title}</div>
+      {credit.role && <div style={{ fontSize: font.labelSize + 0.5, fontStyle: 'italic', color: theme.sub }}>{credit.role}</div>}
+      {meta && <div style={{ fontSize: font.labelSize, color: theme.sub, marginTop: 1 }}>{meta}</div>}
+    </div>
+  );
+}
+
+function CompCardPage2({ data, theme, font }: { data: CompCardData; theme: typeof THEMES[ThemeKey]; font: typeof FONTS[FontKey] }) {
+  const allCredits = [
+    { label: 'TELEVISION', items: data.televisionCredits ?? [] },
+    { label: 'FILM', items: data.filmCredits ?? [] },
+    { label: 'MODELING', items: data.modelingCredits ?? [] },
+    { label: 'COMMERCIAL', items: data.commercialCredits ?? [] },
+  ].filter((c) => c.items.length > 0);
+
+  const leftCredits = allCredits.slice(0, 2);
+  const rightCredits = allCredits.slice(2, 4);
+  const hasSkills = (data.skills?.length ?? 0) > 0;
+  const hasLanguages = (data.languages?.length ?? 0) > 0;
+
+  const nameParts = data.displayName.split(' ');
+  const firstName = nameParts[0] ?? '';
+  const lastName = nameParts.slice(1).join(' ');
+
+  function renderCreditBlock(label: string, items: any[]) {
+    return (
+      <div style={{ marginBottom: 14 }} key={label}>
+        <div style={{
+          fontSize: font.labelSize, letterSpacing: 2.5, color: theme.accent,
+          textTransform: 'uppercase', fontWeight: 600, marginBottom: 6,
+          paddingBottom: 3, borderBottom: `1px solid ${theme.border}`,
+        }}>{label}</div>
+        {items.slice(0, 3).map((credit, i) => (
+          <CreditRow key={i} credit={credit} theme={theme} font={font} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: 900, height: 600, display: 'flex', flexDirection: 'column',
+        background: theme.bg, overflow: 'hidden', position: 'relative',
+        fontFamily: font.name,
+      }}
+    >
+      {/* Top bar */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '18px 28px 10px', flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <span style={{ fontSize: 16, fontWeight: 300, color: theme.text }}>{firstName}</span>
+          <span style={{ fontSize: 16, fontWeight: 600, color: theme.text }}>{lastName}</span>
+        </div>
+        <span style={{
+          fontSize: 9, letterSpacing: 4, color: theme.accent,
+          fontWeight: 400, textTransform: 'uppercase',
+        }}>KAILANI</span>
+      </div>
+      <div style={{ height: 1, background: theme.border, margin: '0 28px', flexShrink: 0 }} />
+
+      {/* Body: two-column grid */}
+      <div style={{ flex: 1, padding: '14px 28px 10px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, flexShrink: 0 }}>
+          <div>
+            {leftCredits.map((c) => renderCreditBlock(c.label, c.items))}
+          </div>
+          <div>
+            {rightCredits.map((c) => renderCreditBlock(c.label, c.items))}
+          </div>
+        </div>
+
+        {/* Divider + skills + languages */}
+        {(hasSkills || hasLanguages) && (
+          <>
+            <div style={{ height: 1, background: theme.border, margin: '8px 0 12px', flexShrink: 0 }} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, flexShrink: 0 }}>
+              {hasSkills ? (
+                <div>
+                  <div style={{
+                    fontSize: font.labelSize, letterSpacing: 2.5, color: theme.accent,
+                    textTransform: 'uppercase', fontWeight: 600, marginBottom: 6,
+                  }}>Skills</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {(data.skills ?? []).slice(0, 8).map((s, i) => (
+                      <span key={i} style={{
+                        fontSize: 7, letterSpacing: 1, padding: '2px 7px',
+                        background: `${theme.accent}22`, color: theme.accent,
+                        borderRadius: 3, textTransform: 'uppercase',
+                      }}>{s}</span>
+                    ))}
+                  </div>
+                </div>
+              ) : <div />}
+              {hasLanguages ? (
+                <div>
+                  <div style={{
+                    fontSize: font.labelSize, letterSpacing: 2.5, color: theme.accent,
+                    textTransform: 'uppercase', fontWeight: 600, marginBottom: 6,
+                  }}>Languages</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                    {(data.languages ?? []).map((l, i) => (
+                      <span key={i} style={{
+                        fontSize: 7, letterSpacing: 1, padding: '2px 7px',
+                        border: `1px solid ${theme.border}`, color: theme.sub,
+                        borderRadius: 3, textTransform: 'uppercase',
+                      }}>{l}</span>
+                    ))}
+                  </div>
+                </div>
+              ) : <div />}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Bottom strip */}
+      <div style={{
+        height: 30, display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', padding: '0 28px',
+        background: theme.strip, flexShrink: 0,
+      }}>
+        <span style={{ fontSize: 7.5, letterSpacing: 1.5, color: theme.sub, textTransform: 'uppercase' }}>
+          {[data.representation, data.website].filter(Boolean).join(' · ')}
+        </span>
+        <span style={{ fontSize: 7.5, letterSpacing: 1.5, color: theme.sub, textTransform: 'uppercase' }}>
+          {data.location || ''}
+        </span>
+        <span style={{ fontSize: 8, letterSpacing: 3, color: theme.accent, textTransform: 'uppercase' }}>
+          KAILANI
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CompCardPage() {
@@ -251,8 +447,10 @@ export default function CompCardPage() {
   const [themeKey, setThemeKey] = useState<ThemeKey>('pink');
   const [fontKey, setFontKey] = useState<FontKey>('classic');
   const [show, setShow] = useState({ measurements: true, rates: true, instagram: true, tags: true, hairEye: true });
+  const [cardPage, setCardPage] = useState<1 | 2>(1);
 
   const cardRef = useRef<HTMLDivElement>(null);
+  const card2Ref = useRef<HTMLDivElement>(null);
   const me = getCurrentUser();
 
   useEffect(() => {
@@ -267,25 +465,32 @@ export default function CompCardPage() {
   }, []);
 
   async function downloadPDF() {
-    if (!cardRef.current || !profile) return;
+    if (!profile) return;
     setGenerating(true);
     try {
       const { default: html2canvas } = await import('html2canvas');
       const { default: jsPDF } = await import('jspdf');
 
-      const canvas = await html2canvas(cardRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        logging: false,
-      });
-
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'in', format: [6, 4] });
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      pdf.addImage(imgData, 'JPEG', 0, 0, 6, 4);
-      const fileName = `${profile.displayName.replace(/\s+/g, '-').toLowerCase()}-comp-card.pdf`;
-      pdf.save(fileName);
+
+      // Page 1
+      if (cardRef.current) {
+        const c1 = await html2canvas(cardRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
+        pdf.addImage(c1.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 6, 4);
+      }
+
+      // Page 2 (only if there are credits or skills)
+      const hasPage2Content = (profile.televisionCredits?.length ?? 0) + (profile.filmCredits?.length ?? 0) +
+        (profile.modelingCredits?.length ?? 0) + (profile.commercialCredits?.length ?? 0) +
+        (profile.skills?.length ?? 0) > 0;
+
+      if (card2Ref.current && hasPage2Content) {
+        pdf.addPage();
+        const c2 = await html2canvas(card2Ref.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: null, logging: false });
+        pdf.addImage(c2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 6, 4);
+      }
+
+      pdf.save(`${profile.displayName.replace(/\s+/g, '-').toLowerCase()}-comp-card.pdf`);
     } finally {
       setGenerating(false);
     }
@@ -383,21 +588,50 @@ export default function CompCardPage() {
 
         {/* Card preview */}
         <div className="flex-1 min-w-0">
+          {/* Page toggle */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <button
+              onClick={() => setCardPage(1)}
+              className={`h-8 px-4 rounded-lg text-xs font-medium transition-colors ${cardPage === 1 ? 'bg-foreground text-background' : 'border border-border hover:bg-muted'}`}
+            >
+              Page 1 — Measurements
+            </button>
+            <button
+              onClick={() => setCardPage(2)}
+              className={`h-8 px-4 rounded-lg text-xs font-medium transition-colors ${cardPage === 2 ? 'bg-foreground text-background' : 'border border-border hover:bg-muted'}`}
+            >
+              Page 2 — Credits & Skills
+            </button>
+          </div>
+
+          {/* Hidden render container for PDF export — both always in DOM */}
+          <div style={{ position: 'absolute', left: -9999, top: -9999, pointerEvents: 'none' }}>
+            <div ref={cardRef} style={{ width: CARD_W, height: CARD_H }}>
+              <CompCard data={profile} heroSrc={heroSrc} theme={theme} font={font} show={show} />
+            </div>
+            <div ref={card2Ref} style={{ width: CARD_W, height: CARD_H }}>
+              <CompCardPage2 data={profile} theme={theme} font={font} />
+            </div>
+          </div>
+
           <div className="rounded-2xl border bg-muted/30 p-6 flex items-center justify-center">
             <div
               style={{ width: previewW, height: previewH, overflow: 'hidden', borderRadius: 4, boxShadow: '0 8px 40px rgba(0,0,0,0.18)' }}
             >
               <div
-                ref={cardRef}
                 style={{ width: CARD_W, height: CARD_H, transformOrigin: 'top left', transform: `scale(${previewScale})` }}
               >
-                <CompCard
-                  data={profile}
-                  heroSrc={heroSrc}
-                  theme={theme}
-                  font={font}
-                  show={show}
-                />
+                {cardPage === 1 ? (
+                  <CompCard
+                    data={profile}
+                    heroSrc={heroSrc}
+                    theme={theme}
+                    font={font}
+                    show={show}
+                  />
+                ) : (
+                  <CompCardPage2 data={profile} theme={theme} font={font} />
+                )}
               </div>
             </div>
           </div>

@@ -18,10 +18,11 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Star, Trash2, GripVertical, Plus, Loader2 } from 'lucide-react';
+import { Star, Trash2, GripVertical, Plus, Loader2, Grid } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
 import { getAccessToken } from '@/lib/auth';
+import { PortfolioGallery } from '@/components/shared/PortfolioGallery';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -33,6 +34,7 @@ interface PortfolioState {
 export default function PortfolioPage() {
   const [state, setState] = useState<PortfolioState>({ images: [], coverImage: null });
   const [uploading, setUploading] = useState(false);
+  const [galleryView, setGalleryView] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
@@ -119,42 +121,73 @@ export default function PortfolioPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Portfolio</h1>
-          <p className="text-sm text-muted-foreground mt-1">Drag to reorder · ★ to set cover · trash to delete</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {galleryView
+              ? 'Click any photo to manage · set cover or delete'
+              : 'Drag to reorder · ★ to set cover · trash to delete'}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setGalleryView((v) => !v)}
+            className="h-9 px-3 rounded-xl border border-border text-sm flex items-center gap-1.5 hover:bg-muted transition-colors"
+          >
+            <Grid size={14} /> {galleryView ? 'Grid View' : 'Gallery View'}
+          </button>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="h-9 px-3 rounded-xl bg-pink-500 text-white text-sm flex items-center gap-1.5 hover:bg-pink-600 transition-colors disabled:opacity-50"
+          >
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+            {uploading ? 'Uploading…' : 'Add photo'}
+          </button>
         </div>
       </div>
 
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={state.images} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {state.images.map((url) => (
-              <SortableImage
-                key={url}
-                url={url}
-                isCover={state.coverImage === url}
-                onDelete={handleDelete}
-                onSetCover={handleSetCover}
-              />
-            ))}
+      {galleryView ? (
+        <PortfolioGallery
+          images={state.images}
+          coverImage={state.coverImage}
+          managementMode
+          onSetCover={async (url) => { await handleSetCover(url); }}
+          onDelete={async (url) => { await handleDelete(url); }}
+        />
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={state.images} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {state.images.map((url) => (
+                <SortableImage
+                  key={url}
+                  url={url}
+                  isCover={state.coverImage === url}
+                  onDelete={handleDelete}
+                  onSetCover={handleSetCover}
+                />
+              ))}
 
-            {/* Upload tile */}
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading}
-              className="aspect-square rounded-2xl border-2 border-dashed border-muted-foreground/30 hover:border-pink-400 hover:bg-pink-50/50 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-pink-500 disabled:opacity-50"
-            >
-              {uploading ? (
-                <Loader2 size={28} className="animate-spin" />
-              ) : (
-                <Plus size={28} />
-              )}
-              <span className="text-xs font-medium">{uploading ? 'Uploading…' : 'Add photo'}</span>
-            </button>
-          </div>
-        </SortableContext>
-      </DndContext>
+              {/* Upload tile */}
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                disabled={uploading}
+                className="aspect-square rounded-2xl border-2 border-dashed border-muted-foreground/30 hover:border-pink-400 hover:bg-pink-50/50 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-pink-500 disabled:opacity-50"
+              >
+                {uploading ? (
+                  <Loader2 size={28} className="animate-spin" />
+                ) : (
+                  <Plus size={28} />
+                )}
+                <span className="text-xs font-medium">{uploading ? 'Uploading…' : 'Add photo'}</span>
+              </button>
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
 
       {state.images.length === 0 && !uploading && (
         <p className="text-center text-muted-foreground text-sm py-8">

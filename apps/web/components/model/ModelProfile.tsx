@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { VerifiedBadge } from '@/components/shared/VerifiedBadge';
+import { PortfolioGallery } from '@/components/shared/PortfolioGallery';
 import type { ModelProfile as ModelProfileType } from '@kailani/types';
 import { MapPin, Scale, Ruler, Film, Tv, Monitor, ShoppingBag, GraduationCap, Link as LinkIcon, Award } from 'lucide-react';
 
@@ -293,13 +294,14 @@ export function ModelProfile({ profile }: Props) {
       {profile.portfolioImages.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-3">Portfolio</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {profile.portfolioImages.map((url, i) => (
-              <div key={i} className="aspect-square relative rounded-md overflow-hidden bg-muted">
-                <Image src={url} alt={`Portfolio ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 300px" className="object-cover" />
-              </div>
-            ))}
-          </div>
+          <PortfolioGallery
+            images={profile.portfolioImages}
+            coverImage={profile.coverImage}
+            profileName={profile.displayName}
+            profileLocation={profile.location}
+            tags={profile.tags}
+            updateUrl
+          />
         </div>
       )}
     </div>
