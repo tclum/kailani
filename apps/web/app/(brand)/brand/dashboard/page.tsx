@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   Plus, Users, MessageSquare, Zap, Briefcase, ChevronRight,
   Heart, ShieldCheck, BookMarked, CheckCircle2, XCircle, Star,
-  FileText,
+  FileText, BookOpen, Newspaper,
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 
@@ -240,6 +240,9 @@ export default function BrandDashboard() {
           <QuickAction href="/brand/campaigns" icon={<Briefcase size={18} />} label="My Campaigns" sub={`${campaigns.length} campaign${campaigns.length !== 1 ? 's' : ''}`} />
           <QuickAction href="/brand/inbox" icon={<MessageSquare size={18} />} label="Inbox" sub={unread > 0 ? `${unread} unread message${unread !== 1 ? 's' : ''}` : 'No unread messages'} />
           <QuickAction href="/brand/saved" icon={<BookMarked size={18} />} label="Saved Models" sub="View your saved boards" />
+          <QuickAction href="/tutorials" icon={<BookOpen size={18} />} label="Tutorials" sub="Campaign planning and industry guides" />
+          <QuickAction href="/news" icon={<Newspaper size={18} />} label="Industry News" sub="Trends, casting calls, and opportunities" />
+          <QuickAction href="/community" icon={<Users size={18} />} label="Community" sub="Connect with verified members" />
         </div>
       </div>
 

@@ -488,15 +488,17 @@ export default function HomePage() {
             />
             <FeatureCard
               icon={<Rss size={20} />}
-              title="Rate Calculator"
-              desc="Estimate fair market rates for modeling and photography work."
+              title="Tools"
+              desc="Rate calculator, comp card generator, and more free tools for your career."
               href="/tools/rate-calculator"
-              badge="Free tool"
+              badge="Free"
             />
-            <ComingSoonCard
+            <FeatureCard
               icon={<Users size={20} />}
-              title="Community Feed"
+              title="Community"
               desc="Stories, tips, and behind-the-scenes content shared by verified members."
+              href="/community"
+              badge="Live"
             />
           </div>
         </div>
