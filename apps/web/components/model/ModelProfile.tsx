@@ -9,6 +9,7 @@ import { MapPin, Scale, Ruler, Film, Tv, Monitor, ShoppingBag, GraduationCap, Li
 
 interface Props {
   profile: ModelProfileType & { user?: { verified?: boolean } | null };
+  hidePortfolio?: boolean;
 }
 
 function cmToFeetInches(cm: number): string {
@@ -22,7 +23,7 @@ function kgToLbs(kg: number): number {
   return Math.round(kg * 2.205);
 }
 
-export function ModelProfile({ profile }: Props) {
+export function ModelProfile({ profile, hidePortfolio }: Props) {
   const tv = profile.televisionCredits ?? [];
   const modeling = profile.modelingCredits ?? [];
   const film = profile.filmCredits ?? [];
@@ -290,8 +291,8 @@ export function ModelProfile({ profile }: Props) {
         </Card>
       )}
 
-      {/* Portfolio */}
-      {profile.portfolioImages.length > 0 && (
+      {/* Portfolio — only shown when not extracted to a side panel */}
+      {!hidePortfolio && profile.portfolioImages.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-3">Portfolio</h2>
           <PortfolioGallery
