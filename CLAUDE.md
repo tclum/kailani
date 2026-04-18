@@ -126,31 +126,23 @@ Steps when ready:
 
 ---
 
-## Phase 7 — Verified experience sharing (build next)
+## Phase 7 — Verified experience sharing ✅ COMPLETE
 
 Design principle: only people who completed a confirmed job together can share their experience. This makes all feedback credible and eliminates fake reviews.
 
-### Review structure
-Rather than a generic star + comment, reviews are structured by role:
-
-**Reviewing a model:** Communication · Punctuality · Professionalism · Creative collaboration · Would work again
-**Reviewing a brand:** Communication · Payment promptness · Brief clarity · Respect on set · Would work again
-**Reviewing a photographer:** Technical skill · Communication · Punctuality · Creative direction · Would work again
-
-### "Working together" feed
-A professional community feed (not social media) where people share brief structured posts after completed jobs — tied to real campaigns so they cannot be fabricated. The person being reviewed has a 48-hour window to add their perspective before the post goes public. This two-sided response window keeps the tone balanced and constructive.
-
-### Red flag system
-If 3+ verified reviews on a profile mention the same concern (late payment, unsafe environment, unprofessional behavior), admin gets an automatic alert and a "Community Flagged" warning appears on the profile pending admin review. Surfaces patterns without relying on a single complaint.
-
-### To build:
-- [ ] Structured review dimensions per role (not just star + comment)
-- [ ] "Working together" community feed tied to completed campaigns
-- [ ] 48-hour response window before review goes public
-- [ ] Reviewed person can add their perspective
-- [ ] Red flag detection: auto-alert admin when 3+ reviews mention same keyword
-- [ ] "Community Flagged" badge on admin-reviewed profiles
-- [ ] Review summary on profile: breakdown by dimension, not just average star
+- [x] Structured review dimensions per role (not just star + comment)
+  - Model: Communication · Punctuality · Professionalism · Creative collaboration · Would work again
+  - Brand: Communication · Payment promptness · Brief clarity · Respect on set · Would work again
+  - Photographer: Technical skill · Communication · Punctuality · Creative direction · Would work again
+- [x] 48-hour response window before review goes public — reviewee can add their perspective
+- [x] Auto-publish logic: reviews go public after deadline regardless of response
+- [x] Review summary on profile: dimension bars, avg rating, % would work again
+- [x] "Working together" community feed at /community — tied to completed campaigns
+- [x] Red flag detection: auto-alert admin when 3+ reviews mention same keyword (late, payment, unsafe, unprofessional, harassment, inappropriate)
+- [x] "Community Flagged" badge on profiles + admin flagged-users queue with clear-flag action
+- [x] Campaign completion flow: brand marks campaign COMPLETED, emails all accepted models, unlocks reviews
+- [x] Own profile view: "This is how others see your profile" banner with completeness indicator and suggestions
+- [x] "View My Profile" button on all three profile edit pages (model, brand, photographer)
 
 ---
 
