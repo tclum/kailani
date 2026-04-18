@@ -271,7 +271,7 @@ export default function CampaignDetailPage() {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold">{campaign.title}</h1>
-            <p className="text-muted-foreground mt-0.5">{campaign.brand.brandName}</p>
+            <p className="text-muted-foreground mt-0.5">{campaign.brand?.brandName}</p>
           </div>
           <div className="flex items-center gap-2">
             <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${

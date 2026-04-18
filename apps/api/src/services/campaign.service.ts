@@ -57,6 +57,10 @@ export async function updateCampaign(id: string, brandId: string, data: Record<s
   return prisma.campaign.update({
     where: { id },
     data: data as any,
+    include: {
+      brand: { select: { id: true, brandName: true, logoUrl: true, profileImage: true, location: true, website: true, instagramUrl: true, userId: true } },
+      _count: { select: { applications: true } },
+    },
   });
 }
 
