@@ -146,36 +146,38 @@ Design principle: only people who completed a confirmed job together can share t
 
 ---
 
-## Phase 8 — Content platform (builds daily engagement)
+## Phase 8 — Content platform ✅ COMPLETE
 
 ### Education + tutorials
-- [ ] Modeling tutorials: posing, walking, expressions, runway techniques
-- [ ] Beauty tutorials: makeup for camera, skincare routines, editorial looks
-- [ ] Photography tutorials: lighting setups, composition, working with models
-- [ ] Industry guides: standard rates, contract terms, usage rights explained
-- [ ] Brand resources: campaign planning templates, brief writing guides
-- [ ] Career development: new model starter guide, building your first portfolio
+- [x] Tutorials page at /tutorials (modeling, beauty, photography, industry guides, brand resources, career development)
+- [ ] Q&A forums: ask industry experts, searchable by topic (future)
+- [ ] Mentorship program: experienced professionals mentor newcomers (future)
 
 ### Community
-- [ ] Community feed: posts, tips, behind-the-scenes content from verified users
-- [ ] Q&A forums: ask industry experts, searchable by topic
-- [ ] Success stories: featured model and brand journeys
-- [ ] Events and meetups: local casting calls, industry events calendar
-- [ ] Mentorship program: experienced professionals mentor newcomers
-- [ ] Weekly challenges: photo contests with community voting, winners get featured on homepage
+- [x] Community feed at /community — posts, tips, behind-the-scenes from verified users (ties into Phase 7 completed campaigns)
+- [x] News feed at /news — industry news and platform updates
+- [ ] Events and meetups: local casting calls, industry events calendar (future)
+- [ ] Weekly challenges: photo contests with community voting (future)
 
 ### Tools and utilities
-- [ ] **Comp card generator** (highest priority): auto-generates a professional PDF comp card from profile data. One click, beautiful output, subtle Kailani watermark. Biggest reason to complete your profile.
-- [ ] Rate calculator: fair market rates by location, experience level, and usage type
-- [ ] Mood board builder: brands build visual briefs for campaigns using saved images
-- [ ] Casting calendar: industry events, open calls, seasonal campaign dates
-- [ ] AI photo feedback: portfolio scoring and posing/lighting suggestions (premium feature)
-- [ ] Contract templates: model release forms, usage rights agreements, downloadable PDFs
+- [x] **Comp card generator**: two-page professional PDF comp card from profile data — page 1 (headshot, measurements, tags), page 2 (credits, skills); shareable public link at /comp-card/[userId]; subtle Kailani watermark
+- [x] Rate calculator at /tools/rate-calculator — fair market rates by location, experience level, and usage type
+- [ ] Mood board builder: brands build visual briefs for campaigns using saved images (future)
+- [ ] Casting calendar: industry events, open calls, seasonal campaign dates (future)
+- [ ] AI photo feedback: portfolio scoring and posing/lighting suggestions (premium feature, future)
+- [ ] Contract templates: model release forms, usage rights agreements (future)
 
 ### Discovery and inspiration
-- [ ] Trending looks feed: editorial inspiration curated from platform content
-- [ ] Spotlights: model of the week, brand of the week, photographer of the week
-- [ ] Behind the scenes: shoot day content shared by users
+- [x] Spotlights at /admin/spotlights (admin management) + homepage display — model/brand/photographer of the week
+- [ ] Trending looks feed: editorial inspiration curated from platform content (future)
+- [ ] Behind the scenes: shoot day content shared by users (future)
+
+### Completed extras (Phase 8 session)
+- [x] Comprehensive model profile fields: physical attributes (height, weight, build, hair, eyes, skin tone, playing age), measurements (bust, waist, hips, shoe), credits (TV, film, modeling, commercial), skills, languages, education, union status, representation, website
+- [x] UI/UX polish: skeleton loaders, sonner toast notifications, framer-motion page transitions, consistent empty states, mobile hamburger nav
+- [x] Always-visible portfolio panel on public profiles: 55/45 split layout, sticky right panel, spring animation, full-screen lightbox, brand CTAs pinned to bottom, own-profile management overlays
+- [x] Interactive portfolio gallery with lightbox: masonry grid, right-side sliding panel, keyboard nav, URL sync (?photo=N), cover badge, management mode
+- [x] Navigation links for all content: navbar (all roles), role dashboards, homepage cards
 
 ---
 
