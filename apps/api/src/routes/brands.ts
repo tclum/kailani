@@ -19,7 +19,7 @@ router.get('/me', requireAuth, requireRole('BRAND'), async (req: AuthRequest, re
 
 router.get('/:id', async (req, res) => {
   const brand = await prisma.brandProfile.findUnique({
-    where: { id: req.params.id },
+    where: { userId: req.params.id },
     include: { user: { select: { id: true, email: true, approved: true, verified: true } } },
   });
   if (!brand) {

@@ -122,7 +122,7 @@ export async function updateApplicationStatus(applicationId: string, status: str
     where: { id: applicationId },
     data: { status: status as any },
     include: {
-      campaign: { include: { brand: { select: { brandName: true } } } },
+      campaign: { include: { brand: { select: { brandName: true, userId: true } } } },
       model: { include: { user: { select: { email: true } } } },
     },
   });

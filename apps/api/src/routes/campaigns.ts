@@ -202,7 +202,7 @@ router.put(
             modelName,
             campaignTitle,
             brandName,
-            `${frontendUrl}/brand/${updated.campaign?.brandId}`,
+            `${frontendUrl}/brand/${(updated.campaign?.brand as any)?.userId ?? updated.campaign?.brandId}`,
           ).catch(() => {});
         } else if (req.body.status === 'REJECTED') {
           sendApplicationRejectedEmail(modelEmail, modelName, campaignTitle, brandName).catch(() => {});

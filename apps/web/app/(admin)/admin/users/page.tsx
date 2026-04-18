@@ -27,9 +27,9 @@ interface PaginatedUsers {
 }
 
 function profileLink(u: UserRow): string | null {
-  if (u.modelProfile) return `/model/${u.modelProfile.id}`;
-  if (u.brandProfile) return `/brand/${u.brandProfile.id}`;
-  if (u.photographerProfile) return `/photographer/${u.photographerProfile.id}`;
+  if (u.modelProfile) return `/model/${u.id}`;
+  if (u.brandProfile) return `/brand/${u.id}`;
+  if (u.photographerProfile) return `/photographer/${u.id}`;
   return null;
 }
 
