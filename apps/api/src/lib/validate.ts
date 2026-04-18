@@ -105,6 +105,60 @@ export const updateModelProfileSchema = z.object({
   profileImage:    z.string().optional(),
   rates:           ratesSchema,
   availability:    z.array(z.string()).optional(),
+
+  // Physical attributes
+  weightKg:         z.number().positive().optional(),
+  build:            z.string().optional(),
+  playingAgeMin:    z.number().int().min(0).max(99).optional(),
+  playingAgeMax:    z.number().int().min(0).max(99).optional(),
+  gender:           z.string().optional(),
+
+  // Credits — array of objects, flexible shape
+  televisionCredits: z.array(z.object({
+    title:      z.string(),
+    role:       z.string().optional().default(''),
+    production: z.string().optional().default(''),
+    director:   z.string().optional().default(''),
+    location:   z.string().optional().default(''),
+    date:       z.string().optional().default(''),
+  })).optional(),
+  modelingCredits: z.array(z.object({
+    title:        z.string(),
+    role:         z.string().optional().default(''),
+    client:       z.string().optional().default(''),
+    photographer: z.string().optional().default(''),
+    location:     z.string().optional().default(''),
+    date:         z.string().optional().default(''),
+  })).optional(),
+  filmCredits: z.array(z.object({
+    title:      z.string(),
+    role:       z.string().optional().default(''),
+    production: z.string().optional().default(''),
+    director:   z.string().optional().default(''),
+    location:   z.string().optional().default(''),
+    date:       z.string().optional().default(''),
+  })).optional(),
+  commercialCredits: z.array(z.object({
+    title:    z.string(),
+    role:     z.string().optional().default(''),
+    client:   z.string().optional().default(''),
+    location: z.string().optional().default(''),
+    date:     z.string().optional().default(''),
+  })).optional(),
+
+  // Skills
+  skills:    z.array(z.string()).optional(),
+  languages: z.array(z.string()).optional(),
+  education: z.array(z.object({
+    institution: z.string(),
+    degree:      z.string().optional().default(''),
+    year:        z.string().optional().default(''),
+  })).optional(),
+
+  // Professional
+  unionStatus:    z.string().optional(),
+  representation: z.string().optional(),
+  website:        z.string().url().optional().or(z.literal('')),
 });
 
 // ── Photographer profile ──────────────────────────────────────────────────────

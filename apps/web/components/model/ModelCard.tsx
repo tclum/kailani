@@ -18,9 +18,13 @@ interface ModelCardProps {
   tags: string[];
   height?: number | null;
   user?: { verified?: boolean } | null;
+  build?: string | null;
+  playingAgeMin?: number | null;
+  playingAgeMax?: number | null;
+  unionStatus?: string | null;
 }
 
-export function ModelCard({ id, userId, displayName, bio, location, coverImage, profileImage, tags, height, user }: ModelCardProps) {
+export function ModelCard({ id, userId, displayName, bio, location, coverImage, profileImage, tags, height, user, build, playingAgeMin, playingAgeMax, unionStatus }: ModelCardProps) {
   const image = profileImage ?? coverImage;
   const me = getCurrentUser();
   const showSave = me?.role === 'BRAND' && userId;
@@ -51,6 +55,19 @@ export function ModelCard({ id, userId, displayName, bio, location, coverImage, 
                 {tags.slice(0, 4).map((tag) => (
                   <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                 ))}
+              </div>
+            )}
+            {(build || playingAgeMin || unionStatus) && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {build && <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">{build}</span>}
+                {playingAgeMin && playingAgeMax && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border">
+                    Age {playingAgeMin}–{playingAgeMax}
+                  </span>
+                )}
+                {unionStatus && unionStatus !== 'Non-Union' && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">{unionStatus}</span>
+                )}
               </div>
             )}
           </CardContent>

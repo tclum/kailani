@@ -30,6 +30,30 @@ export interface ModelProfile {
   portfolioImages: string[];
   coverImage?: string;
   tags: string[];
+
+  // Physical attributes
+  weightKg?: number;
+  build?: string;
+  playingAgeMin?: number;
+  playingAgeMax?: number;
+  gender?: string;
+
+  // Credits
+  televisionCredits?: Array<{ title: string; role?: string; production?: string; director?: string; location?: string; date?: string }>;
+  modelingCredits?: Array<{ title: string; role?: string; client?: string; photographer?: string; location?: string; date?: string }>;
+  filmCredits?: Array<{ title: string; role?: string; production?: string; director?: string; location?: string; date?: string }>;
+  commercialCredits?: Array<{ title: string; role?: string; client?: string; location?: string; date?: string }>;
+
+  // Skills
+  skills?: string[];
+  languages?: string[];
+  education?: Array<{ institution: string; degree?: string; year?: string }>;
+
+  // Professional
+  unionStatus?: string;
+  representation?: string;
+  website?: string;
+
   createdAt: string;
   updatedAt: string;
 }

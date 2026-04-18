@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef, KeyboardEvent } from 'react';
 import Image from 'next/image';
-import { MapPin, Instagram, Ruler, DollarSign, CalendarX2, User, X, ChevronRight, CheckCircle2, Sparkles, Palette, Tag, Camera } from 'lucide-react';
+import { MapPin, Instagram, Ruler, DollarSign, CalendarX2, User, X, ChevronRight, CheckCircle2, Sparkles, Palette, Tag, Camera, Scale, Clapperboard, GraduationCap, Plus, Trash2, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api';
@@ -9,7 +9,14 @@ import { getAccessToken, getCurrentUser } from '@/lib/auth';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
-type Tab = 'basic' | 'measurements' | 'rates' | 'availability';
+type Tab = 'basic' | 'measurements' | 'rates' | 'availability' | 'physical' | 'credits' | 'skills' | 'education';
+
+type TvCredit = { title: string; role: string; production: string; director: string; location: string; date: string };
+type ModelingCredit = { title: string; role: string; client: string; photographer: string; location: string; date: string };
+type FilmCredit = { title: string; role: string; production: string; director: string; location: string; date: string };
+type CommercialCredit = { title: string; role: string; client: string; location: string; date: string };
+type CreditTab = 'television' | 'modeling' | 'film' | 'commercial';
+type EducationEntry = { institution: string; degree: string; year: string };
 
 const HAIR_PRESETS = ['Black', 'Brown', 'Blonde', 'Red', 'Auburn', 'Silver', 'White', 'Other'];
 const EYE_PRESETS  = ['Brown', 'Blue', 'Green', 'Hazel', 'Gray', 'Amber', 'Other'];
@@ -47,6 +54,32 @@ export default function ModelProfilePage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarRef = useRef<HTMLInputElement>(null);
 
+  // Physical
+  const [weightKg, setWeightKg] = useState('');
+  const [build, setBuild] = useState('');
+  const [gender, setGender] = useState('');
+  const [playingAgeMin, setPlayingAgeMin] = useState('');
+  const [playingAgeMax, setPlayingAgeMax] = useState('');
+
+  // Credits
+  const [tvCredits, setTvCredits] = useState<TvCredit[]>([]);
+  const [modelingCredits, setModelingCredits] = useState<ModelingCredit[]>([]);
+  const [filmCredits, setFilmCredits] = useState<FilmCredit[]>([]);
+  const [commercialCredits, setCommercialCredits] = useState<CommercialCredit[]>([]);
+  const [creditTab, setCreditTab] = useState<CreditTab>('television');
+
+  // Skills
+  const [skills, setSkills] = useState<string[]>([]);
+  const [skillInput, setSkillInput] = useState('');
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [languageInput, setLanguageInput] = useState('');
+  const [unionStatus, setUnionStatus] = useState('');
+  const [representation, setRepresentation] = useState('');
+  const [website, setWebsite] = useState('');
+
+  // Education
+  const [education, setEducation] = useState<EducationEntry[]>([]);
+
   useEffect(() => {
     apiFetch<any>('/api/models/me').then((p) => {
       if (!p) return;
@@ -71,6 +104,22 @@ export default function ModelProfilePage() {
       setTags(p.tags ?? []);
       setUnavailableDates(p.availability ?? []);
       if (p.profileImage) setProfileImage(p.profileImage);
+
+      setWeightKg(p.weightKg?.toString() ?? '');
+      setBuild(p.build ?? '');
+      setGender(p.gender ?? '');
+      setPlayingAgeMin(p.playingAgeMin?.toString() ?? '');
+      setPlayingAgeMax(p.playingAgeMax?.toString() ?? '');
+      setTvCredits((p.televisionCredits as TvCredit[]) ?? []);
+      setModelingCredits((p.modelingCredits as ModelingCredit[]) ?? []);
+      setFilmCredits((p.filmCredits as FilmCredit[]) ?? []);
+      setCommercialCredits((p.commercialCredits as CommercialCredit[]) ?? []);
+      setSkills(p.skills ?? []);
+      setLanguages(p.languages ?? []);
+      setUnionStatus(p.unionStatus ?? '');
+      setRepresentation(p.representation ?? '');
+      setWebsite(p.website ?? '');
+      setEducation((p.education as EducationEntry[]) ?? []);
     }).catch(() => {});
   }, []);
 
@@ -154,6 +203,22 @@ export default function ModelProfilePage() {
       if (form.hourlyRate)  rates.hourlyRate  = parseFloat(form.hourlyRate);
       if (Object.keys(rates).length) payload.rates = rates;
 
+      if (weightKg) payload.weightKg = parseFloat(weightKg);
+      if (build) payload.build = build;
+      if (gender) payload.gender = gender;
+      if (playingAgeMin) payload.playingAgeMin = parseInt(playingAgeMin);
+      if (playingAgeMax) payload.playingAgeMax = parseInt(playingAgeMax);
+      payload.televisionCredits = tvCredits;
+      payload.modelingCredits = modelingCredits;
+      payload.filmCredits = filmCredits;
+      payload.commercialCredits = commercialCredits;
+      payload.skills = skills;
+      payload.languages = languages;
+      if (unionStatus) payload.unionStatus = unionStatus;
+      if (representation) payload.representation = representation;
+      if (website) payload.website = website || undefined;
+      payload.education = education;
+
       await apiFetch('/api/models/me', { method: 'PUT', body: payload });
       setSaved(true);
       toast.success('Profile saved successfully');
@@ -168,6 +233,10 @@ export default function ModelProfilePage() {
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'basic',        label: 'Basic Info',    icon: <User size={15} /> },
     { id: 'measurements', label: 'Measurements',  icon: <Ruler size={15} /> },
+    { id: 'physical',     label: 'Physical',      icon: <Scale size={15} /> },
+    { id: 'credits',      label: 'Credits',       icon: <Clapperboard size={15} /> },
+    { id: 'skills',       label: 'Skills',        icon: <Sparkles size={15} /> },
+    { id: 'education',    label: 'Education',     icon: <GraduationCap size={15} /> },
     { id: 'rates',        label: 'Rates',         icon: <DollarSign size={15} /> },
     { id: 'availability', label: 'Availability',  icon: <CalendarX2 size={15} /> },
   ];
@@ -437,6 +506,210 @@ export default function ModelProfilePage() {
               </div>
             )}
 
+            {/* ── Physical ── */}
+            {tab === 'physical' && (
+              <div className="space-y-6">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Physical Attributes</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Weight */}
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Weight</label>
+                    <div className="flex gap-2 items-center">
+                      <input type="number" placeholder="kg" value={weightKg}
+                        onChange={(e) => setWeightKg(e.target.value)}
+                        className="flex-1 h-10 px-3 rounded-xl border border-border bg-background text-sm" />
+                      {weightKg && (
+                        <span className="text-sm text-muted-foreground flex-shrink-0">
+                          {Math.round(parseFloat(weightKg) * 2.205)} lbs
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Build */}
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Build</label>
+                    <select value={build} onChange={(e) => setBuild(e.target.value)}
+                      className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm">
+                      <option value="">Select build</option>
+                      {['Slim', 'Athletic', 'Average', 'Curvy', 'Plus-size', 'Petite', 'Muscular'].map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Gender */}
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Gender</label>
+                    <select value={gender} onChange={(e) => setGender(e.target.value)}
+                      className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm">
+                      <option value="">Select gender</option>
+                      {['Female', 'Male', 'Non-binary', 'Other'].map((g) => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {/* Playing age */}
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Playing Age Range</label>
+                    <div className="flex gap-2 items-center">
+                      <input type="number" placeholder="Min" value={playingAgeMin}
+                        onChange={(e) => setPlayingAgeMin(e.target.value)}
+                        className="flex-1 h-10 px-3 rounded-xl border border-border bg-background text-sm" />
+                      <span className="text-muted-foreground text-sm">–</span>
+                      <input type="number" placeholder="Max" value={playingAgeMax}
+                        onChange={(e) => setPlayingAgeMax(e.target.value)}
+                        className="flex-1 h-10 px-3 rounded-xl border border-border bg-background text-sm" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Credits ── */}
+            {tab === 'credits' && (
+              <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Credits & Experience</h2>
+                {/* Sub-tab bar */}
+                <div className="flex gap-1 p-1 rounded-xl bg-muted">
+                  {(['television', 'modeling', 'film', 'commercial'] as CreditTab[]).map((ct) => (
+                    <button key={ct} type="button"
+                      onClick={() => setCreditTab(ct)}
+                      className={`flex-1 h-8 rounded-lg text-xs font-medium capitalize transition-colors ${creditTab === ct ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                      {ct === 'television' ? 'TV' : ct.charAt(0).toUpperCase() + ct.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                <CreditList
+                  type={creditTab}
+                  tvCredits={tvCredits} setTvCredits={setTvCredits}
+                  modelingCredits={modelingCredits} setModelingCredits={setModelingCredits}
+                  filmCredits={filmCredits} setFilmCredits={setFilmCredits}
+                  commercialCredits={commercialCredits} setCommercialCredits={setCommercialCredits}
+                />
+              </div>
+            )}
+
+            {/* ── Skills ── */}
+            {tab === 'skills' && (
+              <div className="space-y-6">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Skills & Languages</h2>
+                {/* Skills tag input */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Skills</label>
+                  <div className="flex flex-wrap gap-1.5 p-3 rounded-xl border border-border bg-background min-h-[44px] mb-2">
+                    {skills.map((s) => (
+                      <span key={s} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink-100 text-pink-700 text-xs font-medium">
+                        {s}
+                        <button type="button" onClick={() => setSkills(skills.filter((x) => x !== s))}><X size={11} /></button>
+                      </span>
+                    ))}
+                    <input value={skillInput} onChange={(e) => setSkillInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if ((e.key === 'Enter' || e.key === ',') && skillInput.trim()) {
+                          e.preventDefault();
+                          const s = skillInput.trim();
+                          if (!skills.includes(s)) setSkills([...skills, s]);
+                          setSkillInput('');
+                        }
+                      }}
+                      placeholder="Type a skill, press Enter"
+                      className="flex-1 min-w-[120px] outline-none bg-transparent text-sm" />
+                  </div>
+                  {/* Suggested chips */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {['General Modeling', 'Runway', 'Editorial', 'Commercial', 'Acting', 'Dancing', 'Singing',
+                      'Martial Arts', 'Stunt Work', 'Graphic Design', 'Social Media', 'Fitness', 'Swimwear', 'Lingerie'].filter((s) => !skills.includes(s)).map((s) => (
+                      <button key={s} type="button"
+                        onClick={() => setSkills([...skills, s])}
+                        className="px-2.5 py-1 rounded-full border border-border text-xs hover:bg-muted transition-colors">
+                        + {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {/* Languages */}
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Languages</label>
+                  <div className="flex flex-wrap gap-1.5 p-3 rounded-xl border border-border bg-background min-h-[44px] mb-2">
+                    {languages.map((l) => (
+                      <span key={l} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                        {l}
+                        <button type="button" onClick={() => setLanguages(languages.filter((x) => x !== l))}><X size={11} /></button>
+                      </span>
+                    ))}
+                    <input value={languageInput} onChange={(e) => setLanguageInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if ((e.key === 'Enter' || e.key === ',') && languageInput.trim()) {
+                          e.preventDefault();
+                          const l = languageInput.trim();
+                          if (!languages.includes(l)) setLanguages([...languages, l]);
+                          setLanguageInput('');
+                        }
+                      }}
+                      placeholder="Add a language, press Enter"
+                      className="flex-1 min-w-[120px] outline-none bg-transparent text-sm" />
+                  </div>
+                </div>
+                {/* Union status */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Union Status</label>
+                    <select value={unionStatus} onChange={(e) => setUnionStatus(e.target.value)}
+                      className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm">
+                      <option value="">Not specified</option>
+                      {['Non-Union', 'SAG-AFTRA', 'Equity', 'AEA', 'AGMA', 'ACTRA'].map((u) => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Representation</label>
+                    <input value={representation} onChange={(e) => setRepresentation(e.target.value)}
+                      placeholder="Agency name"
+                      className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm" />
+                  </div>
+                </div>
+                {/* Website */}
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Personal Website</label>
+                  <input value={website} onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="https://yourwebsite.com"
+                    className="w-full h-10 px-3 rounded-xl border border-border bg-background text-sm" />
+                </div>
+              </div>
+            )}
+
+            {/* ── Education ── */}
+            {tab === 'education' && (
+              <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Education & Training</h2>
+                {education.map((e, i) => (
+                  <div key={i} className="rounded-xl border border-border p-4 space-y-3">
+                    <div className="grid grid-cols-3 gap-3">
+                      <input value={e.institution} onChange={(ev) => {
+                        const u = [...education]; u[i] = { ...u[i], institution: ev.target.value }; setEducation(u);
+                      }} placeholder="Institution" className="col-span-2 h-10 px-3 rounded-xl border border-border bg-background text-sm" />
+                      <input value={e.year} onChange={(ev) => {
+                        const u = [...education]; u[i] = { ...u[i], year: ev.target.value }; setEducation(u);
+                      }} placeholder="Year" className="h-10 px-3 rounded-xl border border-border bg-background text-sm" />
+                    </div>
+                    <div className="flex gap-2">
+                      <input value={e.degree} onChange={(ev) => {
+                        const u = [...education]; u[i] = { ...u[i], degree: ev.target.value }; setEducation(u);
+                      }} placeholder="Degree / Program" className="flex-1 h-10 px-3 rounded-xl border border-border bg-background text-sm" />
+                      <button type="button" onClick={() => setEducation(education.filter((_, j) => j !== i))}
+                        className="h-10 w-10 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-red-500 hover:border-red-300 transition-colors">
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button type="button" onClick={() => setEducation([...education, { institution: '', degree: '', year: '' }])}
+                  className="flex items-center gap-2 text-sm text-pink-500 hover:text-pink-600 transition-colors font-medium">
+                  <Plus size={15} /> Add Education
+                </button>
+              </div>
+            )}
+
             {/* ── Availability ── */}
             {tab === 'availability' && (
               <div className="space-y-5">
@@ -576,6 +849,227 @@ function PreviewCard({ form, tags, profileImage, onAvatarClick, uploading }: {
           <span className="flex items-center gap-1 text-pink-400"><Sparkles size={11} /> Live</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+function CreditList({
+  type,
+  tvCredits, setTvCredits,
+  modelingCredits, setModelingCredits,
+  filmCredits, setFilmCredits,
+  commercialCredits, setCommercialCredits,
+}: {
+  type: CreditTab;
+  tvCredits: TvCredit[]; setTvCredits: (v: TvCredit[]) => void;
+  modelingCredits: ModelingCredit[]; setModelingCredits: (v: ModelingCredit[]) => void;
+  filmCredits: FilmCredit[]; setFilmCredits: (v: FilmCredit[]) => void;
+  commercialCredits: CommercialCredit[]; setCommercialCredits: (v: CommercialCredit[]) => void;
+}) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [addingNew, setAddingNew] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({});
+
+  // Reset form state when tab changes
+  useEffect(() => {
+    setEditingIndex(null);
+    setAddingNew(false);
+    setForm({});
+  }, [type]);
+
+  const getList = (): Array<Record<string, string>> => {
+    if (type === 'television') return tvCredits as unknown as Array<Record<string, string>>;
+    if (type === 'modeling')   return modelingCredits as unknown as Array<Record<string, string>>;
+    if (type === 'film')       return filmCredits as unknown as Array<Record<string, string>>;
+    return commercialCredits as unknown as Array<Record<string, string>>;
+  };
+
+  const setList = (items: Array<Record<string, string>>) => {
+    if (type === 'television') { setTvCredits(items as unknown as TvCredit[]); return; }
+    if (type === 'modeling')   { setModelingCredits(items as unknown as ModelingCredit[]); return; }
+    if (type === 'film')       { setFilmCredits(items as unknown as FilmCredit[]); return; }
+    setCommercialCredits(items as unknown as CommercialCredit[]);
+  };
+
+  const fieldsFor = (t: CreditTab): { key: string; label: string; placeholder: string }[] => {
+    if (t === 'television') return [
+      { key: 'title',      label: 'Title',      placeholder: 'Show title' },
+      { key: 'role',       label: 'Role',       placeholder: 'Character / Role' },
+      { key: 'production', label: 'Production', placeholder: 'Network / Studio' },
+      { key: 'director',   label: 'Director',   placeholder: 'Director name' },
+      { key: 'location',   label: 'Location',   placeholder: 'City' },
+      { key: 'date',       label: 'Date',       placeholder: 'e.g. Jun 2023' },
+    ];
+    if (t === 'modeling') return [
+      { key: 'title',        label: 'Title',        placeholder: 'Campaign / Shoot name' },
+      { key: 'role',         label: 'Role',         placeholder: 'Role / type' },
+      { key: 'client',       label: 'Client',       placeholder: 'Brand / Agency' },
+      { key: 'photographer', label: 'Photographer', placeholder: 'Photographer name' },
+      { key: 'location',     label: 'Location',     placeholder: 'City' },
+      { key: 'date',         label: 'Date',         placeholder: 'e.g. Jun 2023' },
+    ];
+    if (t === 'film') return [
+      { key: 'title',      label: 'Title',      placeholder: 'Film title' },
+      { key: 'role',       label: 'Role',       placeholder: 'Character / Role' },
+      { key: 'production', label: 'Production', placeholder: 'Studio / Production co.' },
+      { key: 'director',   label: 'Director',   placeholder: 'Director name' },
+      { key: 'location',   label: 'Location',   placeholder: 'City' },
+      { key: 'date',       label: 'Date',       placeholder: 'e.g. Jun 2023' },
+    ];
+    return [
+      { key: 'title',    label: 'Title',    placeholder: 'Commercial name' },
+      { key: 'role',     label: 'Role',     placeholder: 'Role / type' },
+      { key: 'client',   label: 'Client',   placeholder: 'Brand / Client' },
+      { key: 'location', label: 'Location', placeholder: 'City' },
+      { key: 'date',     label: 'Date',     placeholder: 'e.g. Jun 2023' },
+    ];
+  };
+
+  const blankFor = (t: CreditTab): Record<string, string> => {
+    const base: Record<string, string> = { title: '', role: '', location: '', date: '' };
+    if (t === 'television' || t === 'film') { base.production = ''; base.director = ''; }
+    if (t === 'modeling') { base.client = ''; base.photographer = ''; }
+    if (t === 'commercial') { base.client = ''; }
+    return base;
+  };
+
+  const list = getList();
+  const fields = fieldsFor(type);
+
+  function startAdd() {
+    setAddingNew(true);
+    setEditingIndex(null);
+    setForm(blankFor(type));
+  }
+
+  function startEdit(i: number) {
+    setEditingIndex(i);
+    setAddingNew(false);
+    setForm({ ...blankFor(type), ...list[i] });
+  }
+
+  function cancel() {
+    setAddingNew(false);
+    setEditingIndex(null);
+    setForm({});
+  }
+
+  function save() {
+    if (!form.title || !form.title.trim()) return;
+    const entry = { ...blankFor(type), ...form };
+    if (editingIndex !== null) {
+      const next = [...list];
+      next[editingIndex] = entry;
+      setList(next);
+    } else {
+      setList([...list, entry]);
+    }
+    cancel();
+  }
+
+  function remove(i: number) {
+    const next = list.filter((_, idx) => idx !== i);
+    setList(next);
+    if (editingIndex === i) cancel();
+  }
+
+  return (
+    <div className="space-y-3">
+      {list.length === 0 && !addingNew && (
+        <p className="text-sm text-muted-foreground italic">No credits yet — add your first one below.</p>
+      )}
+
+      {list.map((c, i) => {
+        const isEditing = editingIndex === i;
+        if (isEditing) {
+          return (
+            <div key={i} className="rounded-xl border border-pink-200 bg-pink-50/40 p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                {fields.map((f) => (
+                  <input
+                    key={f.key}
+                    value={form[f.key] ?? ''}
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                    placeholder={f.placeholder}
+                    className={`${f.key === 'title' ? 'col-span-2' : ''} h-10 px-3 rounded-xl border border-border bg-background text-sm`}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-2 justify-end">
+                <button type="button" onClick={cancel}
+                  className="h-9 px-3 rounded-xl border border-border text-sm text-muted-foreground hover:bg-muted transition-colors">
+                  Cancel
+                </button>
+                <button type="button" onClick={save}
+                  className="h-9 px-3 rounded-xl text-sm font-medium text-white transition-all"
+                  style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}>
+                  Save
+                </button>
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div key={i} className="rounded-xl border border-border p-4 flex items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <h4 className="font-semibold text-sm truncate">{c.title}</h4>
+                {c.role && <span className="text-xs text-muted-foreground">{c.role}</span>}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                {(c as any).production && <span>{(c as any).production}</span>}
+                {(c as any).client && <span>{(c as any).client}</span>}
+                {(c as any).director && <span>Dir. {(c as any).director}</span>}
+                {(c as any).photographer && <span>Photo: {(c as any).photographer}</span>}
+                {c.location && <span>{c.location}</span>}
+                {c.date && <span>{c.date}</span>}
+              </div>
+            </div>
+            <div className="flex gap-1 flex-shrink-0">
+              <button type="button" onClick={() => startEdit(i)}
+                className="h-8 w-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                <Pencil size={13} />
+              </button>
+              <button type="button" onClick={() => remove(i)}
+                className="h-8 w-8 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-red-500 hover:border-red-300 transition-colors">
+                <Trash2 size={13} />
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {addingNew ? (
+        <div className="rounded-xl border border-pink-200 bg-pink-50/40 p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            {fields.map((f) => (
+              <input
+                key={f.key}
+                value={form[f.key] ?? ''}
+                onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                placeholder={f.placeholder}
+                className={`${f.key === 'title' ? 'col-span-2' : ''} h-10 px-3 rounded-xl border border-border bg-background text-sm`}
+              />
+            ))}
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button type="button" onClick={cancel}
+              className="h-9 px-3 rounded-xl border border-border text-sm text-muted-foreground hover:bg-muted transition-colors">
+              Cancel
+            </button>
+            <button type="button" onClick={save}
+              className="h-9 px-3 rounded-xl text-sm font-medium text-white transition-all"
+              style={{ background: 'linear-gradient(135deg,#ec4899,#be185d)' }}>
+              Add Credit
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" onClick={startAdd}
+          className="flex items-center gap-2 text-sm text-pink-500 hover:text-pink-600 transition-colors font-medium">
+          <Plus size={15} /> Add Credit
+        </button>
+      )}
     </div>
   );
 }

@@ -99,6 +99,29 @@ model ModelProfile {
   applications    Application[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  // Physical attributes
+  weightKg        Float?
+  build           String?
+  playingAgeMin   Int?
+  playingAgeMax   Int?
+  gender          String?
+
+  // Credits
+  televisionCredits Json?
+  modelingCredits   Json?
+  filmCredits       Json?
+  commercialCredits Json?
+
+  // Skills / languages
+  skills          String[]  @default([])
+  languages       String[]  @default([])
+  education       Json?
+
+  // Professional
+  unionStatus     String?
+  representation  String?
+  website         String?
 }
 
 model BrandProfile {

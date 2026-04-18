@@ -1,0 +1,16 @@
+-- AlterTable
+ALTER TABLE "ModelProfile" ADD COLUMN     "build" TEXT,
+ADD COLUMN     "commercialCredits" JSONB,
+ADD COLUMN     "education" JSONB,
+ADD COLUMN     "filmCredits" JSONB,
+ADD COLUMN     "gender" TEXT,
+ADD COLUMN     "languages" TEXT[] DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN     "modelingCredits" JSONB,
+ADD COLUMN     "playingAgeMax" INTEGER,
+ADD COLUMN     "playingAgeMin" INTEGER,
+ADD COLUMN     "representation" TEXT,
+ADD COLUMN     "skills" TEXT[] DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN     "televisionCredits" JSONB,
+ADD COLUMN     "unionStatus" TEXT,
+ADD COLUMN     "website" TEXT,
+ADD COLUMN     "weightKg" DOUBLE PRECISION;
