@@ -8,6 +8,7 @@ import { BrandProfile } from '@/components/brand/BrandProfile';
 import { ReviewsSection } from '@/components/shared/ReviewsSection';
 import { StructuredReviewsSection } from '@/components/shared/StructuredReviewsSection';
 import { ProfileActions } from '@/components/shared/ProfileActions';
+import { OwnProfileBanner } from '@/components/shared/OwnProfileBanner';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import type { BrandProfile as BrandProfileType } from '@kailani/types';
@@ -53,8 +54,21 @@ export default function PublicBrandProfilePage() {
   const isOwnProfile = me?.userId === profile.userId;
   const displayName = profile.brandName;
 
+  const brandCompleteness = [
+    { label: 'Brand name', done: !!profile.brandName },
+    { label: 'Bio', done: !!profile.bio },
+    { label: 'Location', done: !!profile.location },
+    { label: 'Logo', done: !!(profile.logoUrl || profile.profileImage) },
+    { label: 'Industry', done: !!profile.industry },
+    { label: 'Website', done: !!profile.website },
+    { label: 'Instagram', done: !!profile.instagramUrl },
+  ];
+
   return (
     <div className="max-w-3xl space-y-6">
+      {isOwnProfile && (
+        <OwnProfileBanner editHref="/brand/profile" completenessItems={brandCompleteness} />
+      )}
       {me && !isOwnProfile && (
         <div className="flex justify-end gap-2">
           <Button onClick={handleMessage} disabled={messaging} className="flex items-center gap-2">

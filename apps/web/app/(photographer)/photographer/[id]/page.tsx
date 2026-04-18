@@ -11,6 +11,7 @@ import { ReviewsSection } from '@/components/shared/ReviewsSection';
 import { StructuredReviewsSection } from '@/components/shared/StructuredReviewsSection';
 import { ProfileActions } from '@/components/shared/ProfileActions';
 import { ProfileSaveButton } from '@/components/shared/ProfileSaveButton';
+import { OwnProfileBanner } from '@/components/shared/OwnProfileBanner';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import type { PhotographerProfile } from '@kailani/types';
@@ -55,8 +56,22 @@ export default function PublicPhotographerProfilePage() {
 
   const isOwnProfile = me?.userId === profile.userId;
 
+  const photographerCompleteness = [
+    { label: 'Display name', done: !!profile.displayName },
+    { label: 'Bio', done: !!profile.bio },
+    { label: 'Location', done: !!profile.location },
+    { label: 'Profile photo', done: !!profile.profileImage },
+    { label: 'Specialties', done: profile.specialties.length > 0 },
+    { label: 'Portfolio images', done: profile.portfolioImages.length > 0 },
+    { label: 'Rates', done: !!(profile.rates?.dayRate || profile.rates?.hourlyRate) },
+    { label: 'Instagram', done: !!profile.instagramUrl },
+  ];
+
   return (
     <div className="max-w-3xl space-y-6">
+      {isOwnProfile && (
+        <OwnProfileBanner editHref="/photographer/profile" completenessItems={photographerCompleteness} />
+      )}
       {me && !isOwnProfile && (
         <div className="flex justify-end gap-2">
           {me.role === 'BRAND' && <ProfileSaveButton targetUserId={profile.userId} />}

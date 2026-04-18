@@ -9,6 +9,7 @@ import { ReviewsSection } from '@/components/shared/ReviewsSection';
 import { StructuredReviewsSection } from '@/components/shared/StructuredReviewsSection';
 import { ProfileActions } from '@/components/shared/ProfileActions';
 import { ProfileSaveButton } from '@/components/shared/ProfileSaveButton';
+import { OwnProfileBanner } from '@/components/shared/OwnProfileBanner';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
 import type { ModelProfile as ModelProfileType } from '@kailani/types';
@@ -53,8 +54,23 @@ export default function PublicModelProfilePage() {
 
   const isOwnProfile = me?.userId === profile.userId;
 
+  const modelCompleteness = [
+    { label: 'Display name', done: !!profile.displayName },
+    { label: 'Bio', done: !!profile.bio },
+    { label: 'Location', done: !!profile.location },
+    { label: 'Profile photo', done: !!profile.profileImage },
+    { label: 'Tags', done: profile.tags.length > 0 },
+    { label: 'Portfolio images', done: profile.portfolioImages.length > 0 },
+    { label: 'Measurements', done: !!profile.heightCm },
+    { label: 'Rates', done: !!(profile.rates?.dayRate || profile.rates?.hourlyRate) },
+    { label: 'Instagram', done: !!profile.instagramUrl },
+  ];
+
   return (
     <div className="max-w-3xl space-y-6">
+      {isOwnProfile && (
+        <OwnProfileBanner editHref="/model/profile" completenessItems={modelCompleteness} />
+      )}
       {me && !isOwnProfile && (
         <div className="flex justify-end gap-2">
           {me.role === 'BRAND' && <ProfileSaveButton targetUserId={profile.userId} />}

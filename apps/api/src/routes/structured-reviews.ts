@@ -1,11 +1,10 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { requireAuth, AuthRequest } from '../middleware/auth';
+import { requireAuth, optionalAuth, AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
 import { sendNewReviewEmail, sendCommunityFlaggedEmail } from '../services/email.service';
 
 const router = Router();
-router.use(requireAuth);
 
 const FLAG_KEYWORDS = ['late', 'payment', 'unsafe', 'unprofessional', 'harassment', 'inappropriate'];
 
@@ -106,7 +105,7 @@ async function validateParticipant(reviewerId: string, revieweeId: string, campa
 }
 
 // ─── POST /api/structured-reviews ────────────────────────────────────────────
-router.post('/', async (req: AuthRequest, res) => {
+router.post('/', requireAuth, async (req: AuthRequest, res) => {
   const parsed = createSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: 'Invalid data', details: parsed.error.flatten() });
@@ -157,7 +156,7 @@ router.post('/', async (req: AuthRequest, res) => {
 });
 
 // ─── POST /api/structured-reviews/:id/respond ────────────────────────────────
-router.post('/:id/respond', async (req: AuthRequest, res) => {
+router.post('/:id/respond', requireAuth, async (req: AuthRequest, res) => {
   const { response } = req.body as { response?: string };
   if (!response?.trim()) {
     res.status(400).json({ error: 'response is required' });
@@ -185,7 +184,7 @@ router.post('/:id/respond', async (req: AuthRequest, res) => {
 });
 
 // ─── GET /api/structured-reviews/:userId ─────────────────────────────────────
-router.get('/:userId', async (req: AuthRequest, res) => {
+router.get('/:userId', optionalAuth, async (req: AuthRequest, res) => {
   await autoPublish();
 
   const now = new Date();
@@ -270,7 +269,7 @@ router.get('/:userId', async (req: AuthRequest, res) => {
 });
 
 // ─── POST /api/structured-reviews/publish — admin cron trigger ───────────────
-router.post('/publish', async (_req: AuthRequest, res) => {
+router.post('/publish', requireAuth, async (_req: AuthRequest, res) => {
   await autoPublish();
   res.json({ ok: true });
 });

@@ -2,8 +2,9 @@
 import { useEffect, useState, useRef, KeyboardEvent } from 'react';
 import Image from 'next/image';
 import { MapPin, Instagram, Ruler, DollarSign, CalendarX2, User, X, ChevronRight, CheckCircle2, Sparkles, Palette, Tag, Camera } from 'lucide-react';
+import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
-import { getAccessToken } from '@/lib/auth';
+import { getAccessToken, getCurrentUser } from '@/lib/auth';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
@@ -169,26 +170,38 @@ export default function ModelProfilePage() {
     { id: 'availability', label: 'Availability',  icon: <CalendarX2 size={15} /> },
   ];
 
+  const me = getCurrentUser();
+
   return (
     <div className="max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8 gap-3 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
           <p className="text-sm text-muted-foreground mt-1">How brands see you — keep it complete and current</p>
         </div>
-        <button
-          form="profile-form"
-          type="submit"
-          disabled={saving}
-          className="inline-flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-medium text-white transition-all disabled:opacity-50"
-          style={{
-            background: saved ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#ec4899,#be185d)',
-            boxShadow: saved ? '0 4px 16px rgba(34,197,94,0.3)' : '0 4px 16px rgba(236,72,153,0.3)',
-          }}
-        >
-          {saved ? <><CheckCircle2 size={15} /> Saved!</> : saving ? 'Saving…' : <><Sparkles size={15} /> Save Profile</>}
-        </button>
+        <div className="flex items-center gap-2">
+          {me?.userId && (
+            <Link
+              href={`/model/${me.userId}`}
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium border border-border hover:bg-muted transition-colors"
+            >
+              View My Profile
+            </Link>
+          )}
+          <button
+            form="profile-form"
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-medium text-white transition-all disabled:opacity-50"
+            style={{
+              background: saved ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#ec4899,#be185d)',
+              boxShadow: saved ? '0 4px 16px rgba(34,197,94,0.3)' : '0 4px 16px rgba(236,72,153,0.3)',
+            }}
+          >
+            {saved ? <><CheckCircle2 size={15} /> Saved!</> : saving ? 'Saving…' : <><Sparkles size={15} /> Save Profile</>}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
