@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import { ArrowLeft, MessageSquare, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { apiFetch } from '@/lib/api';
 import { getCurrentUser } from '@/lib/auth';
-import { connectSocket, disconnectSocket, getSocket } from '@/lib/socket';
+import { usePolling } from '@/lib/use-polling';
 import { SkeletonAvatar } from '@/components/shared/Skeleton';
 import type { ApiThread, ApiThreadMember, Message } from '@kailani/types';
 
@@ -102,32 +102,6 @@ function Avatar({ src, name, size = 36 }: { src: string | null; name: string; si
     >
       {src ? <Image src={src} alt={name} fill sizes="40px" className="object-cover" /> : initials}
     </div>
-  );
-}
-
-// ─── Typing indicator ─────────────────────────────────────────────────────────
-
-function TypingIndicator({ name }: { name: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 6 }}
-      transition={{ duration: 0.2 }}
-      className="flex items-center gap-2 px-4 pb-2"
-    >
-      <div className="flex items-center gap-1 bg-muted rounded-2xl px-3 py-2">
-        {[0, 1, 2].map((i) => (
-          <motion.span
-            key={i}
-            className="block w-1.5 h-1.5 rounded-full bg-muted-foreground/60"
-            animate={{ y: [0, -4, 0] }}
-            transition={{ duration: 0.6, delay: i * 0.15, repeat: Infinity }}
-          />
-        ))}
-      </div>
-      <span className="text-xs text-muted-foreground">{name} is typing…</span>
-    </motion.div>
   );
 }
 
@@ -227,106 +201,89 @@ function MessagePanel({
   thread,
   myId,
   onBack,
+  onNewMessages,
 }: {
   thread: ApiThread;
   myId: string;
   onBack?: () => void;
+  onNewMessages: (threadId: string) => void;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [body, setBody] = useState('');
   const [sending, setSending] = useState(false);
-  const [typingName, setTypingName] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isTypingRef = useRef(false);
+  const lastCreatedAtRef = useRef<string | null>(null);
+  const threadIdRef = useRef(thread.id);
+  threadIdRef.current = thread.id;
 
   const other = getOtherMember(thread, myId);
   const { name: otherName, avatar: otherAvatar, role: otherRole } = other
     ? getMemberDisplay(other)
     : { name: 'Unknown', avatar: null, role: '' };
 
-  // Load messages and join socket room
+  // Initial load — full history, then mark read
   useEffect(() => {
+    setMessages([]);
+    lastCreatedAtRef.current = null;
+
     apiFetch<Message[]>(`/api/threads/${thread.id}/messages`)
-      .then(setMessages)
-      .catch(() => {});
-
-    const socket = getSocket();
-    if (socket) {
-      socket.emit('join-thread', { threadId: thread.id });
-      socket.emit('mark-read', { threadId: thread.id });
-
-      socket.on('new-message', (msg: Message) => {
-        setMessages((prev) => {
-          // Deduplicate by id
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          return [...prev, msg];
-        });
-        // Mark read since we're viewing the thread
-        socket.emit('mark-read', { threadId: thread.id });
-      });
-
-      socket.on('user-typing', ({ userId, isTyping }: { userId: string; isTyping: boolean }) => {
-        if (userId !== myId) {
-          setTypingName(isTyping ? otherName : null);
+      .then((initial) => {
+        setMessages(initial);
+        if (initial.length > 0) {
+          lastCreatedAtRef.current = initial[initial.length - 1].createdAt;
         }
+        return apiFetch(`/api/threads/${thread.id}/read`, { method: 'POST' });
+      })
+      .catch(() => {});
+  }, [thread.id]);
+
+  // Poll for new messages every 3s, filtered by ?after=
+  usePolling(
+    async () => {
+      const cursor = lastCreatedAtRef.current;
+      const q = cursor ? `?after=${encodeURIComponent(cursor)}` : '';
+      const fresh = await apiFetch<Message[]>(`/api/threads/${threadIdRef.current}/messages${q}`);
+      if (fresh.length === 0) return;
+      setMessages((prev) => {
+        const seen = new Set(prev.map((m) => m.id));
+        const merged = [...prev];
+        for (const m of fresh) if (!seen.has(m.id)) merged.push(m);
+        return merged;
       });
-    }
+      lastCreatedAtRef.current = fresh[fresh.length - 1].createdAt;
+      onNewMessages(threadIdRef.current);
+      await apiFetch(`/api/threads/${threadIdRef.current}/read`, { method: 'POST' }).catch(() => {});
+    },
+    3000,
+    true,
+  );
 
-    return () => {
-      const s = getSocket();
-      if (s) {
-        s.emit('leave-thread', { threadId: thread.id });
-        s.off('new-message');
-        s.off('user-typing');
-      }
-    };
-  }, [thread.id, myId, otherName]);
-
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, typingName]);
+  }, [messages]);
 
-  // REST fallback send (also emits via socket on backend)
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = body.trim();
     if (!trimmed || sending) return;
     setBody('');
     setSending(true);
-    stopTyping();
     try {
       const msg = await apiFetch<Message>(`/api/threads/${thread.id}/messages`, {
         method: 'POST',
         body: { body: trimmed },
       });
-      setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+      lastCreatedAtRef.current = msg.createdAt;
     } catch {
       setBody(trimmed); // restore on error
     } finally {
       setSending(false);
     }
-  }
-
-  function stopTyping() {
-    if (isTypingRef.current) {
-      isTypingRef.current = false;
-      getSocket()?.emit('typing', { threadId: thread.id, isTyping: false });
-    }
-    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-  }
-
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setBody(e.target.value);
-    const socket = getSocket();
-    if (!socket) return;
-    if (!isTypingRef.current) {
-      isTypingRef.current = true;
-      socket.emit('typing', { threadId: thread.id, isTyping: true });
-    }
-    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-    typingTimerRef.current = setTimeout(stopTyping, 2000);
   }
 
   // Group messages by date
@@ -393,9 +350,6 @@ function MessagePanel({
             </div>
           ))
         )}
-        <AnimatePresence>
-          {typingName && <TypingIndicator name={typingName} />}
-        </AnimatePresence>
         <div ref={bottomRef} />
       </div>
 
@@ -406,7 +360,7 @@ function MessagePanel({
       >
         <input
           value={body}
-          onChange={handleInputChange}
+          onChange={(e) => setBody(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
@@ -437,56 +391,31 @@ function InboxInner() {
   const [threads, setThreads] = useState<ApiThread[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(searchParams.get('thread'));
-  // Mobile: 'list' shows thread list, 'thread' shows message panel
   const [mobileView, setMobileView] = useState<'list' | 'thread'>(
     searchParams.get('thread') ? 'thread' : 'list',
   );
   const me = getCurrentUser();
 
-  // Determine discover href based on current path
   const discoverHref =
     pathname?.startsWith('/brand') ? '/brand/discover' :
     pathname?.startsWith('/photographer') ? '/photographer/discover' :
     '/model/discover';
 
+  async function loadThreads() {
+    const data = await apiFetch<ApiThread[]>('/api/threads');
+    setThreads(data);
+  }
+
   useEffect(() => {
-    apiFetch<ApiThread[]>('/api/threads')
-      .then(setThreads)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    loadThreads().catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  // Connect socket once on mount, keep alive
-  useEffect(() => {
-    connectSocket();
-    const socket = getSocket();
-    if (!socket) return;
-
-    // When a new message arrives on any thread, update the thread list preview + unread
-    socket.on('new-message', (msg: Message) => {
-      setThreads((prev) =>
-        prev.map((t) => {
-          if (t.id !== msg.threadId) return t;
-          const isActive = t.id === activeId;
-          return {
-            ...t,
-            messages: [{ id: msg.id, body: msg.body, createdAt: msg.createdAt, senderId: msg.senderId }],
-            unreadCount: isActive ? 0 : t.unreadCount + (msg.senderId !== me?.userId ? 1 : 0),
-          };
-        }),
-      );
-    });
-
-    return () => {
-      socket.off('new-message');
-      disconnectSocket();
-    };
-  }, [activeId, me?.userId]);
+  // Refresh thread list every 15s so unread counts + previews stay current
+  usePolling(loadThreads, 15000, !!me);
 
   function openThread(id: string) {
     setActiveId(id);
     setMobileView('thread');
-    // Clear unread in state immediately
     setThreads((prev) => prev.map((t) => (t.id === id ? { ...t, unreadCount: 0 } : t)));
   }
 
@@ -494,8 +423,6 @@ function InboxInner() {
 
   return (
     <div className="flex h-[calc(100dvh-8rem)] border rounded-xl overflow-hidden">
-      {/* ── Left panel (thread list) ─────────────────────────────────────────── */}
-      {/* Desktop: always visible. Mobile: conditionally shown via mobileView */}
       <aside
         className={`
           w-full md:w-80 border-r flex flex-col flex-shrink-0 bg-background
@@ -551,7 +478,6 @@ function InboxInner() {
         </div>
       </aside>
 
-      {/* ── Right panel (message thread) ────────────────────────────────────── */}
       <div
         className={`
           flex-1 flex flex-col min-w-0
@@ -572,6 +498,7 @@ function InboxInner() {
                 thread={activeThread}
                 myId={me.userId}
                 onBack={() => setMobileView('list')}
+                onNewMessages={() => loadThreads().catch(() => {})}
               />
             </motion.div>
           ) : (

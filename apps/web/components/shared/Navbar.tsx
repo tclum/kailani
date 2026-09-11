@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag, Users, CreditCard, BookOpen, Newspaper, Calculator, Star, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearTokens, getCurrentUser } from '@/lib/auth';
 import { apiFetch } from '@/lib/api';
-import { connectSocket, getSocket, resetSocket } from '@/lib/socket';
+import { usePolling } from '@/lib/use-polling';
 
 
 export function Navbar() {
@@ -15,7 +15,6 @@ export function Navbar() {
   const [verified, setVerified] = useState<boolean | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const u = getCurrentUser();
@@ -25,45 +24,19 @@ export function Navbar() {
         .then((me) => setVerified(me.verified))
         .catch(() => {});
     }
-    if (u) {
-      apiFetch<{ count: number }>('/api/threads/unread-count')
-        .then(({ count }) => setUnreadCount(count))
-        .catch(() => {});
-
-      pollRef.current = setInterval(() => {
-        apiFetch<{ count: number }>('/api/threads/unread-count')
-          .then(({ count }) => setUnreadCount(count))
-          .catch(() => {});
-      }, 30000);
-
-      connectSocket();
-      const socket = getSocket();
-      if (socket) {
-        socket.on('new-message', (msg: { senderId: string }) => {
-          if (msg.senderId !== u.userId) {
-            setUnreadCount((c) => c + 1);
-          }
-        });
-        socket.on('messages-read', () => {
-          apiFetch<{ count: number }>('/api/threads/unread-count')
-            .then(({ count }) => setUnreadCount(count))
-            .catch(() => {});
-        });
-      }
-    }
-
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
   }, []);
+
+  usePolling(
+    async () => {
+      const { count } = await apiFetch<{ count: number }>('/api/threads/unread-count');
+      setUnreadCount(count);
+    },
+    30000,
+    !!user,
+  );
 
   function handleLogout() {
     clearTokens();
-    if (pollRef.current) {
-      clearInterval(pollRef.current);
-      pollRef.current = null;
-    }
-    resetSocket();
     setUser(null);
     setUnreadCount(0);
     setVerified(null);
