@@ -9,7 +9,6 @@ import {
   getUnreadCount,
   markThreadRead,
 } from '../services/message.service';
-import { getIO } from '../lib/socket';
 
 const router = Router();
 
@@ -48,7 +47,8 @@ router.post('/', validate(createThreadSchema), async (req: AuthRequest, res) => 
 
 router.get('/:id/messages', async (req: AuthRequest, res) => {
   try {
-    const messages = await getMessages(req.params.id, req.userId!);
+    const after = typeof req.query.after === 'string' ? req.query.after : undefined;
+    const messages = await getMessages(req.params.id, req.userId!, after);
     res.json(messages);
   } catch (err: any) {
     if (err.message === 'NOT_MEMBER') {
@@ -62,11 +62,6 @@ router.get('/:id/messages', async (req: AuthRequest, res) => {
 router.post('/:id/messages', validate(sendMessageSchema), async (req: AuthRequest, res) => {
   try {
     const message = await createMessage(req.params.id, req.userId!, req.body.body);
-    try {
-      getIO().to(`thread:${req.params.id}`).emit('new-message', message);
-    } catch {
-      // socket not initialized — ok in dev/tests
-    }
     res.status(201).json(message);
   } catch {
     res.status(500).json({ error: 'Failed to send message' });

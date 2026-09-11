@@ -103,14 +103,18 @@ export async function findOrCreateThread(userId: string, recipientId: string) {
   });
 }
 
-export async function getMessages(threadId: string, userId: string) {
+export async function getMessages(threadId: string, userId: string, afterIso?: string) {
   const member = await prisma.threadMember.findUnique({
     where: { threadId_userId: { threadId, userId } },
   });
   if (!member) throw new Error('NOT_MEMBER');
 
+  const after = afterIso ? new Date(afterIso) : null;
   return prisma.message.findMany({
-    where: { threadId },
+    where: {
+      threadId,
+      ...(after && !Number.isNaN(after.getTime()) ? { createdAt: { gt: after } } : {}),
+    },
     include: { sender: { select: userSelect } },
     orderBy: { createdAt: 'asc' },
   });
