@@ -159,7 +159,7 @@ export default function BrandProfilePage() {
             <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
 
             <p className="text-xs text-muted-foreground text-center">
-              Square image recommended · Max 5 MB
+              Square image recommended · Max 4 MB
             </p>
           </div>
 

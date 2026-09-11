@@ -110,7 +110,7 @@ export function VerifyPage() {
               </div>
             )}
 
-            <UploadField label="ID Document *" hint="Passport, driver's licence, or government ID · Max 5 MB" ref={fileRef} />
+            <UploadField label="ID Document *" hint="Passport, driver's licence, or government ID · Max 4 MB" ref={fileRef} />
 
             <p className="text-xs text-muted-foreground">
               🔒 Your ID is stored securely and is never shown publicly. It is only used to confirm your identity.
@@ -141,7 +141,7 @@ export function VerifyPage() {
                 <AlertCircle size={15} /> {error}
               </div>
             )}
-            <UploadField label="New ID Document *" hint="Upload a clearer photo — ensure all text is readable · Max 5 MB" ref={fileRef} />
+            <UploadField label="New ID Document *" hint="Upload a clearer photo — ensure all text is readable · Max 4 MB" ref={fileRef} />
             <button
               type="submit"
               disabled={uploading}

@@ -28,7 +28,7 @@ const verificationStorage = new CloudinaryStorage({
 });
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4 MB — Vercel rejects bodies > 4.5 MB before Express sees them
 
 const multerInstance = multer({
   storage,
@@ -64,7 +64,7 @@ export function uploadSingle(field: string) {
       if (!err) return next();
 
       if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-        res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+        res.status(400).json({ error: 'File too large. Maximum size is 4MB.' });
         return;
       }
 
@@ -84,7 +84,7 @@ export function uploadVerification(field: string) {
     verificationMulter.single(field)(req, res, (err: unknown) => {
       if (!err) return next();
       if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-        res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+        res.status(400).json({ error: 'File too large. Maximum size is 4MB.' });
         return;
       }
       if (err instanceof Error) {
