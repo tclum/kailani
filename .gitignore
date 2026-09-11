@@ -11,7 +11,12 @@ out/
 .env.local
 .env.*.local
 
-# Prisma — migrations are intentionally committed (Railway needs them to run on deploy)
+# Prisma — migrations are intentionally committed (Supabase runs them on deploy)
+
+# Claude Code / agent harness state
+.claude/
+.project-meta.json
+*.tsbuildinfo
 
 # Logs
 *.log

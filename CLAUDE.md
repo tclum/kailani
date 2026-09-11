@@ -18,29 +18,13 @@ A two-sided marketplace connecting fashion models, brands, and photographers. Co
 | Layer | Technology |
 |---|---|
 | Frontend | Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui |
-| Backend | Node.js, Express, TypeScript, Prisma ORM |
-| Database | PostgreSQL via Neon |
+| Backend | Node.js, Express, TypeScript, Prisma ORM (deployed as one Vercel serverless function) |
+| Database | Supabase (PostgreSQL) |
 | Auth | JWT (access 15min + refresh 7d), bcrypt, role-based |
 | File Storage | Cloudinary (images, portfolios, ID verification) |
 | Email | Resend (verification, password reset, notifications) |
-| Real-time | Socket.io (dev only — MUST swap to Pusher before going live) |
+| Real-time | REST polling (inbox 3s, thread list 15s, unread count 30s) |
 | Monorepo | npm workspaces |
-
----
-
-## ⚠️ CRITICAL PRE-LAUNCH: SWAP SOCKET.IO FOR PUSHER
-
-**Before going live with real users, Socket.io MUST be replaced with Pusher.**
-
-Why: Socket.io on a single Railway server cannot handle concurrent connections at scale. Pusher is a managed real-time service that scales automatically.
-
-Steps when ready:
-1. Create a Pusher account at pusher.com
-2. Create a new app, select US East region
-3. Install: `npm install pusher pusher-js` in api and web respectively
-4. Replace all `io.emit(...)` calls with `pusher.trigger(...)`
-5. Replace all `socket.on(...)` calls with `channel.bind(...)`
-6. Remove Socket.io from the Dockerfile and dependencies
 
 ---
 
@@ -48,9 +32,9 @@ Steps when ready:
 
 | Service | Platform | URL |
 |---|---|---|
-| Frontend | Vercel | https://kailani-web.vercel.app |
-| Backend API | Railway | https://kailaniapi-production.up.railway.app |
-| Database | Neon (PostgreSQL) | via DATABASE_URL env var |
+| Frontend | Vercel project `kailani` | https://kailani.forpono.com |
+| Backend API | Vercel project `kailani-api` | https://kailani-api.forpono.com |
+| Database | Supabase project `kailani` (ref rpgxwfqqptycdpgylauh) | via DATABASE_URL / DIRECT_URL |
 | Images | Cloudinary | cloud name: dt85sew8i |
 | Email | Resend | from: onboarding@resend.dev |
 
@@ -92,12 +76,11 @@ Steps when ready:
 - [x] Get Verified navbar link for unverified users
 
 ### Phase 4 — Real-time messaging ✅ COMPLETE
-- [x] Socket.io real-time message delivery
-- [x] Read receipts and typing indicators
+- [x] REST polling for new messages (3s per open thread, 15s per thread list, 30s per unread badge)
+- [x] Read receipts (`POST /api/threads/:id/read` after each poll picks up new messages)
 - [x] Unread count badge on navbar
 - [x] Mobile-friendly split panel inbox
 - [x] Cross-role messaging (model ↔ brand ↔ photographer)
-- [ ] ⚠️ SWAP SOCKET.IO FOR PUSHER before launch
 
 ### Phase 5 — Campaigns ✅ COMPLETE
 - [x] Campaign discovery for models with filters
@@ -183,14 +166,14 @@ Design principle: only people who completed a confirmed job together can share t
 
 ## Phase 9 — Pre-launch platforms
 
-- [ ] **Pusher** — replace Socket.io (pusher.com) ⚠️ REQUIRED
+- [ ] **Pusher or SSE** — swap REST polling for a push channel once traffic grows (pusher.com)
 - [ ] **Stripe** — brand payments to models, subscription tiers (stripe.com)
 - [ ] **Google/Apple OAuth** — social login to reduce signup friction
 - [ ] **Sentry** — error monitoring in production (sentry.io)
 - [ ] **Twilio** — SMS notifications for matches and messages (twilio.com)
 - [ ] **Algolia** — powerful model search by tags, location, measurements (algolia.com)
 - [ ] **PostHog** — product analytics, understand user behavior (posthog.com)
-- [ ] **Custom domain** — replace kailani-web.vercel.app
+- [x] **Custom domain** — kailani.forpono.com (web), kailani-api.forpono.com (api)
 - [ ] **Custom email domain** — replace onboarding@resend.dev with noreply@kailani.com
 - [ ] **Content moderation** — auto-flag inappropriate images (Cloudinary AI)
 - [ ] **PWA support** — installable on iPhone/Android from browser
@@ -212,9 +195,9 @@ Design principle: only people who completed a confirmed job together can share t
 ## Security Checklist
 
 ### Completed ✅
-- [x] Rate limiting on auth routes (10 req / 15 min)
-- [x] Trust proxy set for Railway
-- [x] File type and size validation on uploads
+- [x] Rate limiting on auth routes (10 req / 15 min; best-effort per instance on serverless)
+- [x] Trust proxy set for the Vercel edge
+- [x] File type and size validation on uploads (4 MB cap for Vercel body limit)
 - [x] ADMIN role cannot be created via public signup
 - [x] CORS locked to FRONTEND_URL
 - [x] Zod input validation on all request bodies
@@ -234,9 +217,10 @@ Design principle: only people who completed a confirmed job together can share t
 
 ## Environment Variables
 
-### apps/api/.env
+### apps/api (Vercel project `kailani-api`)
 ```
-DATABASE_URL=
+DATABASE_URL=postgresql://postgres.<ref>:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1
+DIRECT_URL=postgresql://postgres.<ref>:<password>@aws-0-us-west-1.pooler.supabase.com:5432/postgres
 JWT_SECRET=
 JWT_REFRESH_SECRET=
 CLOUDINARY_CLOUD_NAME=dt85sew8i
@@ -244,15 +228,10 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 RESEND_API_KEY=
 EMAIL_FROM=onboarding@resend.dev
-FRONTEND_URL=https://kailani-web.vercel.app
+FRONTEND_URL=https://kailani.forpono.com
 NODE_ENV=production
-PORT=4000
 
 # Add before launch:
-PUSHER_APP_ID=
-PUSHER_KEY=
-PUSHER_SECRET=
-PUSHER_CLUSTER=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 TWILIO_ACCOUNT_SID=
@@ -263,9 +242,9 @@ ALGOLIA_APP_ID=
 ALGOLIA_API_KEY=
 ```
 
-### Vercel Environment Variables
+### apps/web (Vercel project `kailani`)
 ```
-NEXT_PUBLIC_API_URL=https://kailaniapi-production.up.railway.app
+NEXT_PUBLIC_API_URL=https://kailani-api.forpono.com
 ```
 
 ---

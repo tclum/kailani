@@ -10,12 +10,12 @@ A two-sided fashion marketplace connecting models and brands, with an agency-sty
 
 | Layer | Technology |
 |---|---|
-| Frontend | Next.js 14, TypeScript, Tailwind CSS, shadcn/ui |
-| Backend | Node.js, Express, TypeScript |
+| Frontend | Next.js 14, TypeScript, Tailwind CSS, shadcn/ui — Vercel project `kailani` at kailani.forpono.com |
+| Backend | Node.js, Express, TypeScript — Vercel project `kailani-api` at kailani-api.forpono.com (single serverless function) |
 | ORM | Prisma |
-| Database | PostgreSQL |
+| Database | Supabase project `kailani` (ref rpgxwfqqptycdpgylauh) |
 | Auth | JWT (access + refresh tokens), bcrypt |
-| Real-time | Socket.io (messaging) |
+| Real-time | REST polling (open thread 3s, thread list 15s, unread badge 30s) |
 | Monorepo | npm workspaces |
 
 ---
@@ -46,7 +46,8 @@ cp .env.example .env
 Open `.env` and fill in at minimum:
 
 ```bash
-DATABASE_URL="postgresql://youruser:yourpassword@localhost:5432/kailani"
+DATABASE_URL="postgresql://postgres.<ref>:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres.<ref>:<password>@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
 JWT_SECRET="any-long-random-string"
 JWT_REFRESH_SECRET="another-long-random-string"
 ```
