@@ -18,6 +18,7 @@ const router = Router();
 
 const rateLimitEnabled = process.env.RATE_LIMIT_ENABLED !== 'false';
 
+// express-rate-limit is in-memory and per-instance; on Vercel this is best-effort across serverless invocations.
 const authLimiter = rateLimitEnabled
   ? rateLimit({
       windowMs: 15 * 60 * 1000,
