@@ -4,10 +4,8 @@ import Image from 'next/image';
 import { MapPin, Instagram, Ruler, DollarSign, CalendarX2, User, X, ChevronRight, CheckCircle2, Sparkles, Palette, Tag, Camera, Scale, Clapperboard, GraduationCap, Plus, Trash2, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { apiFetch } from '@/lib/api';
-import { getAccessToken, getCurrentUser } from '@/lib/auth';
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { apiFetch, apiUpload, uploadErrorMessage } from '@/lib/api';
+import { getCurrentUser } from '@/lib/auth';
 
 type Tab = 'basic' | 'measurements' | 'rates' | 'availability' | 'physical' | 'credits' | 'skills' | 'education';
 
@@ -130,17 +128,11 @@ export default function ModelProfilePage() {
     try {
       const fd = new FormData();
       fd.append('image', file);
-      const res = await fetch(`${API}/api/models/me/profile-image`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-        body: fd,
-      });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error ?? 'Upload failed'); return; }
+      const data = await apiUpload<{ url: string }>('/api/models/me/profile-image', fd);
       setProfileImage(data.url);
       toast.success('Profile photo updated');
-    } catch {
-      toast.error('Avatar upload failed — please try again');
+    } catch (err) {
+      toast.error(uploadErrorMessage(err, 'Upload failed', 'Avatar upload failed — please try again'));
     } finally {
       setUploadingAvatar(false);
       if (avatarRef.current) avatarRef.current.value = '';

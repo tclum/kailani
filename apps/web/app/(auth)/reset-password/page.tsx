@@ -4,6 +4,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiFetch } from '@/lib/api';
+import { isDemo } from '@/lib/demo/flag';
+import { DemoRedirect } from '@/components/shared/DemoRedirect';
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -271,6 +273,7 @@ function CornerAccent({ position }: { position: 'top-left' | 'top-right' | 'bott
 }
 
 export default function ResetPasswordPage() {
+  if (isDemo()) return <DemoRedirect to="/login" />;
   return (
     <Suspense>
       <ResetPasswordForm />

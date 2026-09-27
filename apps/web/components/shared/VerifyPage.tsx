@@ -4,10 +4,7 @@ import Image from 'next/image';
 import {
   ShieldCheck, ShieldX, Clock, Upload, CheckCircle2, AlertCircle, FileText,
 } from 'lucide-react';
-import { apiFetch } from '@/lib/api';
-import { getAccessToken } from '@/lib/auth';
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { apiFetch, apiUpload, uploadErrorMessage } from '@/lib/api';
 
 type VerifStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -44,17 +41,11 @@ export function VerifyPage() {
     try {
       const fd = new FormData();
       fd.append('idImage', file);
-      const res = await fetch(`${API}/api/verification/submit`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-        body: fd,
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'Submission failed'); return; }
+      const data = await apiUpload<VerifRequest>('/api/verification/submit', fd);
       setRequest(data);
       setSuccess(true);
-    } catch {
-      setError('Submission failed — please try again');
+    } catch (err) {
+      setError(uploadErrorMessage(err, 'Submission failed', 'Submission failed — please try again'));
     } finally {
       setUploading(false);
     }

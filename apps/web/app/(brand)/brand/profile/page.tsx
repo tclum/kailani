@@ -4,10 +4,8 @@ import Image from 'next/image';
 import { Building2, Globe, MapPin, Instagram, FileText, Camera, CheckCircle2, Sparkles, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { apiFetch } from '@/lib/api';
-import { getAccessToken, getCurrentUser } from '@/lib/auth';
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+import { apiFetch, apiUpload, uploadErrorMessage } from '@/lib/api';
+import { getCurrentUser } from '@/lib/auth';
 
 const INDUSTRIES = ['Fashion', 'Apparel', 'Beauty', 'Lifestyle', 'Sports', 'Entertainment', 'Other'];
 
@@ -52,17 +50,11 @@ export default function BrandProfilePage() {
     try {
       const fd = new FormData();
       fd.append('image', file);
-      const res = await fetch(`${API}/api/brands/me/logo`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-        body: fd,
-      });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error ?? 'Logo upload failed'); return; }
+      const data = await apiUpload<{ url: string }>('/api/brands/me/logo', fd);
       setLogoUrl(data.url);
       toast.success('Logo updated');
-    } catch {
-      toast.error('Logo upload failed — please try again');
+    } catch (err) {
+      toast.error(uploadErrorMessage(err, 'Logo upload failed', 'Logo upload failed — please try again'));
     } finally {
       setUploadingLogo(false);
       if (logoRef.current) logoRef.current.value = '';

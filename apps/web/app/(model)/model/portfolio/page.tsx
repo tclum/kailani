@@ -20,11 +20,8 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Star, Trash2, GripVertical, Plus, Loader2, Grid } from 'lucide-react';
 import { toast } from 'sonner';
-import { apiFetch } from '@/lib/api';
-import { getAccessToken } from '@/lib/auth';
+import { apiFetch, apiUpload, uploadErrorMessage } from '@/lib/api';
 import { PortfolioGallery } from '@/components/shared/PortfolioGallery';
-
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 interface PortfolioState {
   images: string[];
@@ -59,17 +56,11 @@ export default function PortfolioPage() {
     try {
       const fd = new FormData();
       fd.append('image', file);
-      const res = await fetch(`${API}/api/models/me/portfolio`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${getAccessToken()}` },
-        body: fd,
-      });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error ?? 'Upload failed'); return; }
+      const data = await apiUpload<{ url: string }>('/api/models/me/portfolio', fd);
       setState((prev) => ({ ...prev, images: [...prev.images, data.url] }));
       toast.success('Photo uploaded');
-    } catch {
-      toast.error('Upload failed — please try again');
+    } catch (err) {
+      toast.error(uploadErrorMessage(err, 'Upload failed', 'Upload failed — please try again'));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = '';

@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiFetch } from '@/lib/api';
 import { setTokens } from '@/lib/auth';
+import { isDemo } from '@/lib/demo/flag';
+import { DemoRolePicker } from '@/components/shared/DemoRolePicker';
 import type { AuthResponse } from '@kailani/types';
 
 export default function LoginPage() {
@@ -80,78 +82,84 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="auth-card rounded-2xl p-8">
-          <div className="mb-6 text-center">
-            <h2 className="text-xl font-light tracking-wide" style={{ color: '#f4f4f5' }}>
-              Welcome Back
-            </h2>
-            <p className="text-xs mt-1 tracking-widest uppercase" style={{ color: 'rgba(161,161,170,0.6)' }}>
-              Sign in to continue
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="rounded-lg px-4 py-2.5 text-sm text-center"
-                style={{ background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.3)', color: '#fb7185' }}>
-                {error}
+          {isDemo() ? (
+            <DemoRolePicker />
+          ) : (
+            <>
+              <div className="mb-6 text-center">
+                <h2 className="text-xl font-light tracking-wide" style={{ color: '#f4f4f5' }}>
+                  Welcome Back
+                </h2>
+                <p className="text-xs mt-1 tracking-widest uppercase" style={{ color: 'rgba(161,161,170,0.6)' }}>
+                  Sign in to continue
+                </p>
               </div>
-            )}
 
-            <div className="space-y-1.5">
-              <label className="auth-label block" htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                placeholder="you@example.com"
-                className="auth-input w-full h-11 rounded-lg px-4 text-sm outline-none border"
-              />
-            </div>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className="rounded-lg px-4 py-2.5 text-sm text-center"
+                    style={{ background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.3)', color: '#fb7185' }}>
+                    {error}
+                  </div>
+                )}
 
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="auth-label block" htmlFor="password">Password</label>
-                <Link href="/forgot-password"
-                  className="text-xs transition-colors hover:opacity-80"
-                  style={{ color: 'rgba(244,114,182,0.7)', textDecoration: 'none' }}>
-                  Forgot password?
-                </Link>
+                <div className="space-y-1.5">
+                  <label className="auth-label block" htmlFor="email">Email</label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    className="auth-input w-full h-11 rounded-lg px-4 text-sm outline-none border"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="auth-label block" htmlFor="password">Password</label>
+                    <Link href="/forgot-password"
+                      className="text-xs transition-colors hover:opacity-80"
+                      style={{ color: 'rgba(244,114,182,0.7)', textDecoration: 'none' }}>
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    className="auth-input w-full h-11 rounded-lg px-4 text-sm outline-none border"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="auth-btn w-full h-11 rounded-lg text-sm mt-2 inline-flex items-center justify-center gap-2"
+                >
+                  {loading && <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
+                  {loading ? 'Signing in…' : 'Sign In'}
+                </button>
+              </form>
+
+              <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(244,114,182,0.1)' }}>
+                <p className="text-center text-xs tracking-wide" style={{ color: 'rgba(161,161,170,0.6)' }}>
+                  New to Kailani?{' '}
+                  <Link href="/signup"
+                    className="transition-colors hover:opacity-80"
+                    style={{ color: '#f472b6', textDecoration: 'none', letterSpacing: '0.05em' }}>
+                    Create an account
+                  </Link>
+                </p>
               </div>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className="auth-input w-full h-11 rounded-lg px-4 text-sm outline-none border"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="auth-btn w-full h-11 rounded-lg text-sm mt-2 inline-flex items-center justify-center gap-2"
-            >
-              {loading && <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />}
-              {loading ? 'Signing in…' : 'Sign In'}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(244,114,182,0.1)' }}>
-            <p className="text-center text-xs tracking-wide" style={{ color: 'rgba(161,161,170,0.6)' }}>
-              New to Kailani?{' '}
-              <Link href="/signup"
-                className="transition-colors hover:opacity-80"
-                style={{ color: '#f472b6', textDecoration: 'none', letterSpacing: '0.05em' }}>
-                Create an account
-              </Link>
-            </p>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Bottom mark */}

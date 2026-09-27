@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Newspaper, ExternalLink, RefreshCw } from 'lucide-react';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { SkeletonCard } from '@/components/shared/Skeleton';
+import { isDemo } from '@/lib/demo/flag';
 
 type NewsCategory = 'ALL' | 'fashion' | 'beauty' | 'business' | 'photography';
 
@@ -91,6 +92,14 @@ export default function NewsPage() {
   async function fetchNews(category: NewsCategory) {
     setLoading(true);
     setUsingFallback(false);
+    if (isDemo()) {
+      // Demo mode: fictional fixture articles; the NewsAPI key is never read.
+      const { buildNewsArticles } = await import('@/lib/demo/fixtures/content');
+      const all = buildNewsArticles(Date.now());
+      setArticles(category === 'ALL' ? all : all.filter((a) => a.category === category));
+      setLoading(false);
+      return;
+    }
     const cat = CATEGORIES.find((c) => c.key === category)!;
     try {
       const apiKey = process.env.NEXT_PUBLIC_NEWSAPI_KEY;

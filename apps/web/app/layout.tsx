@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import { Toaster } from 'sonner';
 import './globals.css';
+import { DemoBanner } from '@/components/shared/DemoBanner';
 
 const inter = Inter({ subsets: ['latin'] });
 const cormorant = Cormorant_Garamond({
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${inter.className} ${cormorant.variable}`}>
+        <DemoBanner />
         {children}
         <Toaster position="bottom-right" richColors />
       </body>

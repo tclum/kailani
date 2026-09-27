@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Briefcase, ArrowLeft, CheckCircle2, User } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { setTokens } from '@/lib/auth';
+import { isDemo } from '@/lib/demo/flag';
+import { DemoRedirect } from '@/components/shared/DemoRedirect';
 import type { AuthResponse } from '@kailani/types';
 
 type Role = 'MODEL' | 'BRAND' | 'PHOTOGRAPHER';
@@ -45,6 +47,11 @@ function getDashboardHref(role: Role) {
 }
 
 export default function SignupPage() {
+  if (isDemo()) return <DemoRedirect to="/login" />;
+  return <SignupForm />;
+}
+
+function SignupForm() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [dir, setDir] = useState(1);

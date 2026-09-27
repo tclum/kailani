@@ -3,8 +3,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiFetch } from '@/lib/api';
+import { isDemo } from '@/lib/demo/flag';
+import { DemoRedirect } from '@/components/shared/DemoRedirect';
 
 export default function ForgotPasswordPage() {
+  if (isDemo()) return <DemoRedirect to="/login" />;
+  return <ForgotPasswordForm />;
+}
+
+function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');

@@ -2,11 +2,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag, Users, CreditCard, BookOpen, Newspaper, Calculator, Star, Menu, X } from 'lucide-react';
+import { MessageSquare, Zap, ShieldCheck, Briefcase, Bookmark, Flag, Users, CreditCard, BookOpen, Newspaper, Calculator, Star, Menu, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { clearTokens, getCurrentUser } from '@/lib/auth';
 import { apiFetch } from '@/lib/api';
 import { usePolling } from '@/lib/use-polling';
+import { isDemo } from '@/lib/demo/flag';
 
 
 export function Navbar() {
@@ -43,6 +44,12 @@ export function Navbar() {
     setMobileOpen(false);
     router.push('/login');
     router.refresh();
+  }
+
+  async function handleResetDemo() {
+    const { resetDemo } = await import('@/lib/demo/store');
+    resetDemo();
+    window.location.reload();
   }
 
   function getDashboardHref() {
@@ -90,9 +97,24 @@ export function Navbar() {
       ? 'flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-muted transition-colors'
       : undefined;
 
+    const resetDemoControl = isDemo() && (
+      mobile ? (
+        <button onClick={handleResetDemo} className={btnCls}>
+          <span className="text-pink-500"><RotateCcw size={15} /></span>
+          Reset demo
+        </button>
+      ) : (
+        <Button variant="ghost" size="sm" onClick={handleResetDemo} className="flex items-center gap-1.5" title="Restore the demo's sample data">
+          <RotateCcw size={15} />
+          Reset demo
+        </Button>
+      )
+    );
+
     if (!user) {
       return (
         <>
+          {resetDemoControl}
           {mobile ? (
             <>
               <Link href="/login" className={btnCls} onClick={() => setMobileOpen(false)}>Log in</Link>
@@ -193,6 +215,8 @@ export function Navbar() {
             </Button>
           )
         )}
+
+        {resetDemoControl}
 
         {mobile ? (
           <>

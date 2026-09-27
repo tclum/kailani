@@ -268,7 +268,8 @@ npm run dev
 - Error responses: `{ error: string, code?: string }`
 - Tailwind for all styling — no CSS modules
 - shadcn/ui for all UI primitives
-- All API calls use `process.env.NEXT_PUBLIC_API_URL`
+- All API calls use `process.env.NEXT_PUBLIC_API_URL`, through `apiFetch` / `apiUpload` in `apps/web/lib/api.ts` (no direct `fetch` to the API outside `lib/`)
+- **Demo coverage:** every new API path the web app calls needs a demo route in `apps/web/lib/demo/routes.mjs` (with a handler in `lib/demo/handlers/`) or a `DEFERRED` entry naming its owning slice. Enforced by `node apps/web/scripts/check-demo-coverage.mjs`, which must exit 0. See "Demo mode" in README.md.
 - Commit at end of every working session
 - Never commit .env files
 
