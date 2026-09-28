@@ -1,0 +1,4 @@
+# Keep secrets and agent state out of Vercel CLI uploads (kailani-go-live, 2026-09-27).
+.env
+.env.*
+.claude/
